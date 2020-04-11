@@ -43,7 +43,7 @@ public abstract class GuiModelRenderer extends GuiElement
     {
         super(mc);
 
-        this.dummy = new DummyEntity(mc.theWorld);
+        this.dummy = new DummyEntity(mc.world);
     }
 
     public void reset()
@@ -81,7 +81,7 @@ public abstract class GuiModelRenderer extends GuiElement
         }
 
         this.scale += Math.copySign(0.25F, scroll);
-        this.scale = MathHelper.clamp_float(this.scale, -1.5F, 30);
+        this.scale = MathHelper.clamp(this.scale, -1.5F, 30);
 
         return false;
     }
@@ -122,7 +122,7 @@ public abstract class GuiModelRenderer extends GuiElement
      */
     protected void update()
     {
-        this.timer = this.mc.thePlayer != null ? this.mc.thePlayer.ticksExisted : this.timer + 1;
+        this.timer = this.mc.player != null ? this.mc.player.ticksExisted : this.timer + 1;
         this.dummy.ticksExisted = this.timer;
     }
 

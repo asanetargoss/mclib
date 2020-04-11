@@ -20,6 +20,6 @@ public class Clamp extends Function
     @Override
     public double get()
     {
-        return MathHelper.clamp_double(this.getArg(0), this.getArg(1), this.getArg(2));
+        return MathHelper.clamp(this.getArg(0), this.getArg(1), this.getArg(2));
     }
 }
