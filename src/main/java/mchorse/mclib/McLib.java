@@ -11,12 +11,12 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
- * McLib mod
+ * DominionLib mod
  * 
- * All it does is provides common code for McHorse's mods.
+ * Provides common code for Changeling, based on McHorse's McLib.
  */
 @Mod.EventBusSubscriber
-@Mod(modid = McLib.MOD_ID, name = "McLib", version = McLib.VERSION, updateJSON = "https://raw.githubusercontent.com/mchorse/mclib/master/version.json")
+@Mod(modid = McLib.MOD_ID, name = "DominionLib", version = McLib.VERSION)
 public class McLib
 {
     public static final String MOD_ID = "mclib";
