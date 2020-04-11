@@ -1,13 +1,12 @@
 [
     {
         "modid": "mclib",
-        "name": "McLib",
-        "description": "McHorse's library mod",
+        "name": "DominionLib",
+        "description": "DominionLib library mod for Changeling",
         "version": "${version}",
         "mcversion": "${mcversion}",
-        "url": "https://minecraft.curseforge.com/projects/mchorses-mclib/",
-        "updateJSON": "https://raw.githubusercontent.com/mchorse/mclib/master/version.json",
-        "authorList": ["mchorse"],
-        "credits": "Ernio for networking code I still use to this day!"
+        "url": "https://github.com/asanetargoss/DominionLib/",
+        "authorList": ["asanetargoss", "mchorse"],
+        "credits": "McHorse for McLib, Ernio for networking code."
     }
 ]
