@@ -16,9 +16,9 @@ import mchorse.mclib.utils.ColorUtils;
 import mchorse.mclib.utils.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
@@ -65,7 +65,7 @@ public class GuiColorPicker extends GuiElement
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder vertexbuffer = tessellator.getBuffer();
+		VertexBuffer vertexbuffer = tessellator.getBuffer();
 		vertexbuffer.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
 		vertexbuffer.pos(x1, y1, 0).color(color.r, color.g, color.b, 1).endVertex();
 		vertexbuffer.pos(x1, y2, 0).color(color.r, color.g, color.b, 1).endVertex();

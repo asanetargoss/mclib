@@ -172,7 +172,7 @@ public class GuiDraw
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 		buffer.pos(right, top, zLevel).color(r1, g1, b1, a1).endVertex();
@@ -206,7 +206,7 @@ public class GuiDraw
 	    tessellator.draw();
 	}
 
-	public static void drawBillboard(BufferBuilder buffer, int x, int y, int u, int v, int w, int h, int textureW, int textureH, float z)
+	public static void drawBillboard(VertexBuffer buffer, int x, int y, int u, int v, int w, int h, int textureW, int textureH, float z)
 	{
 		float tw = 1F / textureW;
 		float th = 1F / textureH;
@@ -319,7 +319,7 @@ public class GuiDraw
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
@@ -379,7 +379,7 @@ public class GuiDraw
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		buffer.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
 
@@ -425,7 +425,7 @@ public class GuiDraw
 		GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		/* Draw opaque base */
 		buffer.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
@@ -536,7 +536,7 @@ public class GuiDraw
 		int fillerY = h - (countY - 1) * tileH;
 
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 

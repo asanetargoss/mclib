@@ -11,8 +11,8 @@ import mchorse.mclib.utils.keyframes.KeyframeInterpolation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.VertexBuffer;
 
 import java.util.function.Consumer;
 
@@ -374,7 +374,7 @@ public abstract class GuiKeyframeElement extends GuiElement
 
     protected abstract void drawGraph(GuiContext context, int mouseX, int mouseY);
 
-    protected void drawRect(BufferBuilder builder, int x, int y, int offset, int c)
+    protected void drawRect(VertexBuffer builder, int x, int y, int offset, int c)
     {
         COLOR.set(c, false);
 

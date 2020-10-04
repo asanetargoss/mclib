@@ -11,9 +11,9 @@ import mchorse.mclib.utils.keyframes.KeyframeInterpolation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
@@ -464,7 +464,7 @@ public class GuiGraphView extends GuiKeyframeElement
             return;
         }
 
-        BufferBuilder vb = Tessellator.getInstance().getBuffer();
+        VertexBuffer vb = Tessellator.getInstance().getBuffer();
         KeyframeChannel channel = this.sheet.channel;
 
         /* Colorize the graph for given channel */

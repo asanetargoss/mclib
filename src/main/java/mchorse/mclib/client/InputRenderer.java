@@ -20,7 +20,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GLSync;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -171,7 +170,7 @@ public class InputRenderer
         int mx = offset + (int) (qx * (screen.width - offset * 2));
         int my = offset + (int) (qy * (screen.height - 20 - offset * 2));
 
-        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+        FontRenderer font = Minecraft.getMinecraft().fontRendererObj;
         Iterator<PressedKey> it = this.pressedKeys.iterator();
 
         GlStateManager.disableLighting();
@@ -283,7 +282,7 @@ public class InputRenderer
             this.x = x;
 
             this.name = Keys.getKeyName(key);
-            this.width = Minecraft.getMinecraft().fontRenderer.getStringWidth(this.name);
+            this.width = Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.name);
             this.i = INDEX ++;
         }
 
@@ -317,7 +316,7 @@ public class InputRenderer
             int lastWidth = this.width;
 
             this.times ++;
-            this.width = Minecraft.getMinecraft().fontRenderer.getStringWidth(this.getLabel());
+            this.width = Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.getLabel());
 
             return this.width - lastWidth;
         }
