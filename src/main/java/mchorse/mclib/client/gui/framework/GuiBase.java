@@ -2,8 +2,8 @@ package mchorse.mclib.client.gui.framework;
 
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
-import mchorse.mclib.client.gui.framework.elements.utils.GuiInventoryElement;
 import mchorse.mclib.client.gui.utils.Area;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.relauncher.Side;
@@ -37,18 +37,19 @@ public class GuiBase extends GuiScreen
         this.context.mc = Minecraft.getMinecraft();
         this.context.font = this.context.mc.fontRendererObj;
 
-        this.root = new GuiElement(this.context.mc);
-        this.root.markContainer().resizer().w(1, 0).h(1, 0);
-        this.root.keys().register("Keybinds list", Keyboard.KEY_F9, () ->
-        {
-            this.context.keybinds.toggleVisible();
+        this.root = new GuiRootElement(this.context.mc);
+        this.root.markContainer().flex().relative(this.viewport).wh(1F, 1F);
+        this.root.keys().register(IKey.lang("mclib.gui.keys.list"), Keyboard.KEY_F9, () -> this.context.keybinds.toggleVisible());
 
-            return true;
-        });
-
-        this.context.keybinds.resizer().parent(this.viewport).wh(0.5F, 1F);
+        this.context.keybinds.flex().relative(this.viewport).wh(0.5F, 1F);
 
         Keyboard.enableRepeatEvents(false);
+    }
+
+    @Override
+    public void updateScreen()
+    {
+        this.context.tick += 1;
     }
 
     @Override
@@ -62,7 +63,17 @@ public class GuiBase extends GuiScreen
         }
 
         this.viewport.set(0, 0, this.width, this.height);
+        this.viewportSet();
         this.root.resize();
+    }
+
+    protected void viewportSet()
+    {}
+
+    @Override
+    public void onGuiClosed()
+    {
+        current = null;
     }
 
     @Override
@@ -166,6 +177,14 @@ public class GuiBase extends GuiScreen
             this.context.reset();
             this.root.draw(this.context);
             this.context.drawTooltip();
+        }
+    }
+
+    public static class GuiRootElement extends GuiElement
+    {
+        public GuiRootElement(Minecraft mc)
+        {
+            super(mc);
         }
     }
 }

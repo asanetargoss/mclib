@@ -2,36 +2,27 @@ package mchorse.mclib.client.gui.utils.resizers;
 
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.IGuiElement;
-import mchorse.mclib.client.gui.utils.Area;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public abstract class AutomaticResizer extends DecoratedResizer
+public abstract class AutomaticResizer extends BaseResizer
 {
 	public GuiElement parent;
 	public int margin;
 	public int padding;
-
-	protected List<ChildResizer> resizers = new ArrayList<ChildResizer>();
-	protected boolean collectChildren = true;
+	public int height;
 
 	public AutomaticResizer(GuiElement parent, int margin)
 	{
-		super(parent.resizer());
-
 		this.parent = parent;
 		this.margin = margin;
 
 		this.setup();
 	}
 
-	public AutomaticResizer dontCollect()
-	{
-		this.collectChildren = false;
-
-		return this;
-	}
+	/* Standard properties */
 
 	public AutomaticResizer padding(int padding)
 	{
@@ -40,10 +31,19 @@ public abstract class AutomaticResizer extends DecoratedResizer
 		return this;
 	}
 
+	public AutomaticResizer height(int height)
+	{
+		this.height = height;
+
+		return this;
+	}
+
 	public void reset()
 	{
-		this.resizers.clear();
+		/* ¯\_(ツ)_/¯ */
 	}
+
+	/* Child management */
 
 	public void setup()
 	{
@@ -53,58 +53,88 @@ public abstract class AutomaticResizer extends DecoratedResizer
 			{
 				GuiElement element = (GuiElement) child;
 
-				element.setResizer(this.child(element));
+				element.resizer(this.child(element));
 			}
-		}
-	}
-
-	public void add(GuiElement... elements)
-	{
-		for (GuiElement element : elements)
-		{
-			element.setResizer(this.child(element));
 		}
 	}
 
 	public IResizer child(GuiElement element)
 	{
-		ChildResizer child = new ChildResizer(this, element.getResizer());
-
-		if (this.collectChildren)
-		{
-			this.resizers.add(child);
-		}
+		ChildResizer child = new ChildResizer(this, element);
 
 		return child;
 	}
 
-	@Override
-	public void apply(Area area)
+	public List<ChildResizer> getResizers()
 	{
-		this.resizer.apply(area);
+		List<ChildResizer> resizers = new ArrayList<ChildResizer>();
+
+		for (IGuiElement element : this.parent.getChildren())
+		{
+			if (element instanceof GuiElement)
+			{
+				GuiElement elem = (GuiElement) element;
+
+				if (elem.resizer() instanceof ChildResizer)
+				{
+					resizers.add((ChildResizer) elem.resizer());
+				}
+			}
+		}
+
+		return resizers;
+	}
+
+	/* Miscellaneous */
+
+	@Override
+	public void add(GuiElement parent, GuiElement child)
+	{
+		if (child.ignored)
+		{
+			return;
+		}
+
+		child.resizer(this.child(child));
+	}
+
+	@Override
+	public void remove(GuiElement parent, GuiElement child)
+	{
+		if (child.ignored)
+		{
+			return;
+		}
+
+		IResizer resizer = child.resizer();
+
+		if (resizer instanceof ChildResizer)
+		{
+			child.resizer(((ChildResizer) resizer).resizer);
+		}
 	}
 
 	@Override
 	public int getX()
 	{
-		return this.parent.area.x;
+		return 0;
 	}
 
 	@Override
 	public int getY()
 	{
-		return this.parent.area.y;
+		return 0;
 	}
 
 	@Override
 	public int getW()
 	{
-		return this.parent.area.w;
+		return 0;
 	}
 
 	@Override
 	public int getH()
 	{
-		return this.parent.area.h;
+		return 0;
 	}
 }

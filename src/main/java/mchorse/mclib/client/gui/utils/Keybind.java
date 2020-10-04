@@ -1,5 +1,7 @@
 package mchorse.mclib.client.gui.utils;
 
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import mchorse.mclib.utils.Keys;
 import org.lwjgl.input.Keyboard;
 
 import java.util.Arrays;
@@ -10,13 +12,16 @@ import java.util.function.Supplier;
  */
 public class Keybind
 {
-	public String label;
+	public IKey label;
+	public IKey category = IKey.EMPTY;
 	public int mainKey;
 	public int[] heldKeys;
-	public Supplier<Boolean> callback;
+	public Runnable callback;
 	public boolean inside;
+	public boolean active = true;
+	public Supplier<Boolean> activeSupplier;
 
-	public Keybind(String label, int mainKey, Supplier<Boolean> callback)
+	public Keybind(IKey label, int mainKey, Runnable callback)
 	{
 		this.label = label;
 		this.mainKey = mainKey;
@@ -37,15 +42,36 @@ public class Keybind
 		return this;
 	}
 
+	public Keybind active(Supplier<Boolean> active)
+	{
+		this.activeSupplier = active;
+
+		return this;
+	}
+
+	public Keybind active(boolean active)
+	{
+		this.active = active;
+
+		return this;
+	}
+
+	public Keybind category(IKey category)
+	{
+		this.category = category;
+
+		return this;
+	}
+
 	public String getKeyCombo()
 	{
-		String label = Keyboard.getKeyName(this.mainKey);
+		String label = Keys.getKeyName(this.mainKey);
 
 		if (this.heldKeys != null)
 		{
 			for (int held : this.heldKeys)
 			{
-				label = Keyboard.getKeyName(held) + " + " + label;
+				label = Keys.getKeyName(held) + " + " + label;
 			}
 		}
 
@@ -76,5 +102,28 @@ public class Keybind
 		}
 
 		return true;
+	}
+
+	public boolean isActive()
+	{
+		if (this.activeSupplier != null)
+		{
+			return this.activeSupplier.get();
+		}
+
+		return this.active;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof Keybind)
+		{
+			Keybind keybind = (Keybind) obj;
+
+			return this.mainKey == keybind.mainKey && Arrays.equals(this.heldKeys, keybind.heldKeys) && this.inside == keybind.inside;
+		}
+
+		return super.equals(obj);
 	}
 }

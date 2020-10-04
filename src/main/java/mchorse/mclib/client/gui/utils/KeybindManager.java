@@ -1,10 +1,10 @@
 package mchorse.mclib.client.gui.utils;
 
 import mchorse.mclib.client.gui.framework.elements.input.GuiKeybinds;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Keybind manager
@@ -13,32 +13,18 @@ public class KeybindManager
 {
 	public List<Keybind> keybinds = new ArrayList<Keybind>();
 
-	public KeybindManager register(String label, int key, Supplier<Boolean> callback)
+	public Keybind register(IKey label, int key, Runnable callback)
 	{
-		this.keybinds.add(new Keybind(label, key, callback));
+		Keybind keybind = new Keybind(label, key, callback);
 
-		return this;
+		this.keybinds.add(keybind);
+
+		return keybind;
 	}
 
-	public KeybindManager registerInside(String label, int key, Supplier<Boolean> callback)
+	public Keybind registerInside(IKey label, int key, Runnable callback)
 	{
-		this.keybinds.add(new Keybind(label, key, callback).inside());
-
-		return this;
-	}
-
-	public KeybindManager register(String label, int key, Supplier<Boolean> callback, int... keys)
-	{
-		this.keybinds.add(new Keybind(label, key, callback).held(keys));
-
-		return this;
-	}
-
-	public KeybindManager registerInside(String label, int key, Supplier<Boolean> callback, int... keys)
-	{
-		this.keybinds.add(new Keybind(label, key, callback).inside().held(keys));
-
-		return this;
+		return this.register(label, key, callback).inside();
 	}
 
 	public void add(GuiKeybinds keybinds, boolean inside)
@@ -50,9 +36,9 @@ public class KeybindManager
 
 		for (Keybind keybind : this.keybinds)
 		{
-			if (!keybind.inside || inside)
+			if (keybind.isActive() && (!keybind.inside || inside))
 			{
-				keybinds.keybinds.add(keybind);
+				keybinds.addKeybind(keybind);
 			}
 		}
 	}
@@ -61,9 +47,11 @@ public class KeybindManager
 	{
 		for (Keybind keybind : this.keybinds)
 		{
-			if (keybind.check(keyCode, inside))
+			if (keybind.isActive() && keybind.check(keyCode, inside) && keybind.callback != null)
 			{
-				return keybind.callback != null && keybind.callback.get();
+				keybind.callback.run();
+
+				return true;
 			}
 		}
 

@@ -1,27 +1,48 @@
 package mchorse.mclib.client.gui.framework.elements.input;
 
-import java.util.function.Consumer;
-
+import com.google.common.base.Predicate;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
-import mchorse.mclib.client.gui.framework.elements.GuiElement;
-import mchorse.mclib.client.gui.framework.elements.IFocusedGuiElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
-import mchorse.mclib.client.gui.utils.Icons;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import mchorse.mclib.config.values.ValueString;
+import mchorse.mclib.utils.Patterns;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiPageButtonList.GuiResponder;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
+
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * GUI text element
  * 
  * This element is a wrapper for the text field class
  */
-public class GuiTextElement extends GuiElement implements GuiResponder, IFocusedGuiElement
+@SideOnly(Side.CLIENT)
+public class GuiTextElement extends GuiBaseTextElement implements GuiResponder
 {
-    public GuiTextField field;
+    public static final Predicate<String> FILENAME_PREDICATE = (s) -> Patterns.FILENAME.matcher(s).find();
+
     public Consumer<String> callback;
+
+    public GuiTextElement(Minecraft mc, ValueString value)
+    {
+        this(mc, value, null);
+    }
+
+    public GuiTextElement(Minecraft mc, ValueString value, Consumer<String> callback)
+    {
+        this(mc, callback == null ? value::set : (string) ->
+        {
+            value.set(string);
+            callback.accept(string);
+        });
+        this.setText(value.get());
+        this.tooltip(IKey.lang(value.getTooltipKey()));
+    }
 
     public GuiTextElement(Minecraft mc, int maxLength, Consumer<String> callback)
     {
@@ -33,9 +54,22 @@ public class GuiTextElement extends GuiElement implements GuiResponder, IFocused
     {
         super(mc);
 
-        this.field = new GuiTextField(0, this.font, 0, 0, 0, 0);
         this.field.setGuiResponder(this);
         this.callback = callback;
+
+        this.flex().h(20);
+    }
+
+    public GuiTextElement filename()
+    {
+        return this.validator(FILENAME_PREDICATE);
+    }
+
+    public GuiTextElement validator(Predicate<String> validator)
+    {
+        this.field.setValidator(validator);
+
+        return this;
     }
 
     public void setText(String text)
@@ -67,20 +101,6 @@ public class GuiTextElement extends GuiElement implements GuiResponder, IFocused
     }
 
     @Override
-    public void setEnabled(boolean enabled)
-    {
-        super.setEnabled(enabled);
-        this.field.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible)
-    {
-        super.setVisible(visible);
-        this.field.setVisible(visible);
-    }
-
-    @Override
     public void resize()
     {
         super.resize();
@@ -108,37 +128,26 @@ public class GuiTextElement extends GuiElement implements GuiResponder, IFocused
             context.focus(wasFocused ? null : this);
         }
 
-        return false;
-    }
-
-    @Override
-    public boolean isFocused()
-    {
-        return this.field.isFocused();
-    }
-
-    @Override
-    public void focus(GuiContext context)
-    {
-        this.field.setFocused(true);
-        Keyboard.enableRepeatEvents(true);
-    }
-
-    @Override
-    public void unfocus(GuiContext context)
-    {
-        this.field.setFocused(false);
-        Keyboard.enableRepeatEvents(false);
+        return context.mouseButton == 0 && this.area.isInside(context);
     }
 
     @Override
     public boolean keyTyped(GuiContext context)
     {
-        if (this.isFocused() && context.keyCode == Keyboard.KEY_TAB)
+        if (this.isFocused())
         {
-            context.focus(this, -1, GuiScreen.isShiftKeyDown() ? -1 : 1);
+            if (context.keyCode == Keyboard.KEY_TAB)
+            {
+                context.focus(this, -1, GuiScreen.isShiftKeyDown() ? -1 : 1);
 
-            return true;
+                return true;
+            }
+            else if (context.keyCode == Keyboard.KEY_ESCAPE)
+            {
+                context.unfocus();
+
+                return true;
+            }
         }
 
         return this.field.textboxKeyTyped(context.typedChar, context.keyCode) || super.keyTyped(context);

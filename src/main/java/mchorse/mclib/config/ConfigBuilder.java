@@ -1,10 +1,13 @@
 package mchorse.mclib.config;
 
+import mchorse.mclib.config.values.Value;
 import mchorse.mclib.config.values.ValueBoolean;
 import mchorse.mclib.config.values.ValueDouble;
 import mchorse.mclib.config.values.ValueFloat;
 import mchorse.mclib.config.values.ValueInt;
+import mchorse.mclib.config.values.ValueRL;
 import mchorse.mclib.config.values.ValueString;
+import net.minecraft.util.ResourceLocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +33,7 @@ public class ConfigBuilder
 
 		for (ConfigCategory category : this.categories)
 		{
+			category.config = config;
 			config.categories.put(category.id, category);
 		}
 
@@ -43,11 +47,18 @@ public class ConfigBuilder
 		return this;
 	}
 
+	public ConfigBuilder register(Value value)
+	{
+		this.category.register(value.getId(), value);
+
+		return this;
+	}
+
 	public ValueInt getInt(String id, int defaultValue)
 	{
 		ValueInt value = new ValueInt(id, defaultValue);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -56,17 +67,7 @@ public class ConfigBuilder
 	{
 		ValueInt value = new ValueInt(id, defaultValue, min, max);
 
-		this.category.values.put(id, value);
-
-		return value;
-	}
-
-	public ValueInt getColor(String id, int defaultValue)
-	{
-		ValueInt value = new ValueInt(id, defaultValue);
-
-		value.color();
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -75,7 +76,7 @@ public class ConfigBuilder
 	{
 		ValueFloat value = new ValueFloat(id, defaultValue);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -84,7 +85,7 @@ public class ConfigBuilder
 	{
 		ValueFloat value = new ValueFloat(id, defaultValue, min, max);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -93,7 +94,7 @@ public class ConfigBuilder
 	{
 		ValueDouble value = new ValueDouble(id, defaultValue);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -102,7 +103,7 @@ public class ConfigBuilder
 	{
 		ValueDouble value = new ValueDouble(id, defaultValue, min, max);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -111,7 +112,7 @@ public class ConfigBuilder
 	{
 		ValueBoolean value = new ValueBoolean(id, defaultValue);
 
-		this.category.values.put(id, value);
+		this.register(value);
 
 		return value;
 	}
@@ -120,7 +121,16 @@ public class ConfigBuilder
 	{
 		ValueString value = new ValueString(id, defaultValue);
 
-		this.category.values.put(id, value);
+		this.register(value);
+
+		return value;
+	}
+
+	public ValueRL getRL(String id, ResourceLocation defaultValue)
+	{
+		ValueRL value = new ValueRL(id, defaultValue);
+
+		this.register(value);
 
 		return value;
 	}

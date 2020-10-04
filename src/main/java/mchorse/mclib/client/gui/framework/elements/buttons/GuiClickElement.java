@@ -2,6 +2,7 @@ package mchorse.mclib.client.gui.framework.elements.buttons;
 
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
+import mchorse.mclib.client.gui.utils.GuiUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.init.SoundEvents;
@@ -30,11 +31,11 @@ public abstract class GuiClickElement<T extends GuiClickElement> extends GuiElem
             return true;
         }
 
-        if (context.mouseButton == 0 && this.area.isInside(context.mouseX, context.mouseY))
+        if (this.isAllowed(context.mouseButton) && this.area.isInside(context))
         {
             this.pressed = true;
-            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            this.click();
+            GuiUtils.playClick();
+            this.click(context.mouseButton);
 
             return true;
         }
@@ -42,7 +43,12 @@ public abstract class GuiClickElement<T extends GuiClickElement> extends GuiElem
         return false;
     }
 
-    protected void click()
+    protected boolean isAllowed(int mouseButton)
+    {
+        return mouseButton == 0;
+    }
+
+    protected void click(int mouseButton)
     {
         if (this.callback != null)
         {
@@ -60,7 +66,7 @@ public abstract class GuiClickElement<T extends GuiClickElement> extends GuiElem
     @Override
     public void draw(GuiContext context)
     {
-        this.hover = this.area.isInside(context.mouseX, context.mouseY);
+        this.hover = this.area.isInside(context);
 
         this.drawSkin(context);
         super.draw(context);

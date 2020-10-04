@@ -3,6 +3,7 @@ package mchorse.mclib.client.gui.framework.elements.buttons;
 import mchorse.mclib.McLib;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 
@@ -10,19 +11,31 @@ import java.util.function.Consumer;
 
 public class GuiButtonElement extends GuiClickElement<GuiButtonElement>
 {
-	public String label;
+	public IKey label;
 
-	public GuiButtonElement(Minecraft mc, String label, Consumer<GuiButtonElement> callback)
+	public boolean custom;
+	public int customColor;
+
+	public GuiButtonElement(Minecraft mc, IKey label, Consumer<GuiButtonElement> callback)
 	{
 		super(mc, callback);
 
 		this.label = label;
+		this.flex().h(20);
+	}
+
+	public GuiButtonElement color(int color)
+	{
+		this.custom = true;
+		this.customColor = color & 0xffffff;
+
+		return this;
 	}
 
 	@Override
 	protected void drawSkin(GuiContext context)
 	{
-		int color = 0xff000000 + McLib.primaryColor.get();
+		int color = 0xff000000 + (this.custom ? this.customColor : McLib.primaryColor.get());
 
 		if (this.hover)
 		{
@@ -31,10 +44,11 @@ public class GuiButtonElement extends GuiClickElement<GuiButtonElement>
 
 		GuiDraw.drawBorder(this.area, color);
 
-		int x = this.area.mx(this.font.getStringWidth(this.label));
+		String label = this.label.get();
+		int x = this.area.mx(this.font.getStringWidth(label));
 		int y = this.area.my(this.font.FONT_HEIGHT - 1);
 
-		this.font.drawStringWithShadow(this.label, x, y, this.hover ? 16777120 : 0xffffff);
+		this.font.drawStringWithShadow(label, x, y, this.hover ? 16777120 : 0xffffff);
 
 		GuiDraw.drawLockedArea(this);
 	}

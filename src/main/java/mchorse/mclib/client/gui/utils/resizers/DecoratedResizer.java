@@ -1,8 +1,6 @@
 package mchorse.mclib.client.gui.utils.resizers;
 
-import mchorse.mclib.client.gui.utils.Area;
-
-public abstract class DecoratedResizer implements IResizer
+public abstract class DecoratedResizer extends BaseResizer
 {
 	public IResizer resizer;
 
@@ -10,7 +8,4 @@ public abstract class DecoratedResizer implements IResizer
 	{
 		this.resizer = resizer;
 	}
-
-	public void apply(Area area, IResizer resizer)
-	{}
 }

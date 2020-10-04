@@ -53,7 +53,7 @@ public class GuiDelegateElement<T extends GuiElement> extends GuiElement
     }
 
     @Override
-    public void clear()
+    public void removeAll()
     {
         this.unsupported();
     }
@@ -95,10 +95,21 @@ public class GuiDelegateElement<T extends GuiElement> extends GuiElement
     @Override
     public void resize()
     {
+        if (this.resizer != null)
+        {
+            this.resizer.apply(this.area);
+        }
+
         if (this.delegate != null)
         {
             this.delegate.resizer = this.resizer;
+            this.delegate.flex().link(this.flex());
             this.delegate.resize();
+        }
+
+        if (this.resizer != null)
+        {
+            this.resizer.postApply(this.area);
         }
     }
 
@@ -109,8 +120,9 @@ public class GuiDelegateElement<T extends GuiElement> extends GuiElement
     }
 
     @Override
-    public GuiContextMenu createContextMenu() {
-        return this.delegate == null ? super.createContextMenu() : this.delegate.createContextMenu();
+    public GuiContextMenu createContextMenu(GuiContext context)
+    {
+        return this.delegate == null ? super.createContextMenu(context) : this.delegate.createContextMenu(context);
     }
 
     @Override
