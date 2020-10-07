@@ -28,7 +28,7 @@ public class GuiSlotElement extends GuiClickElement<GuiSlotElement>
 	public static final ResourceLocation HELMET = new ResourceLocation("minecraft:textures/items/empty_armor_slot_helmet.png");
 
 	public int slot;
-	public ItemStack stack = ItemStack.EMPTY;
+	public ItemStack stack = null;
 	public GuiInventoryElement inventory;
 
 	public GuiSlotElement(Minecraft mc, int slot, GuiInventoryElement inventory)
@@ -67,7 +67,7 @@ public class GuiSlotElement extends GuiClickElement<GuiSlotElement>
 				/* TODO: do something about it */
 				.action(Icons.DOWNLOAD, IKey.str("Drop item down"), () -> {})
 				.action(Icons.CLOSE, IKey.str("Clear item"), () -> {
-					this.stack = ItemStack.EMPTY;
+					this.stack = null;
 				});
 		}
 
