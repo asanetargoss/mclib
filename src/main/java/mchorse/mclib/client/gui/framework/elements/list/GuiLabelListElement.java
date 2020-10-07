@@ -1,9 +1,8 @@
 package mchorse.mclib.client.gui.framework.elements.list;
 
-import mchorse.mclib.McLib;
 import mchorse.mclib.client.gui.utils.Label;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +17,7 @@ public class GuiLabelListElement <T> extends GuiListElement<Label<T>>
 		this.scroll.scrollItemSize = 16;
 	}
 
-	public void add(String title, T value)
+	public void add(IKey title, T value)
 	{
 		this.add(new Label<T>(title, value));
 	}
@@ -52,19 +51,14 @@ public class GuiLabelListElement <T> extends GuiListElement<Label<T>>
 	@Override
 	protected boolean sortElements()
 	{
-		Collections.sort(this.list, (a, b) -> a.title.compareToIgnoreCase(b.title));
+		Collections.sort(this.list, (a, b) -> a.title.get().compareToIgnoreCase(b.title.get()));
 
 		return true;
 	}
 
 	@Override
-	public void drawElement(Label<T> element, int i, int x, int y, boolean hover, boolean selected)
+	protected String elementToString(Label<T> element)
 	{
-		if (selected)
-		{
-			Gui.drawRect(x, y, x + this.scroll.w, y + this.scroll.scrollItemSize, 0x88000000 + McLib.primaryColor.get());
-		}
-
-		this.font.drawStringWithShadow(element.title, x + 4, y + 4, hover ? 16777120 : 0xffffff);
+		return element.title.get();
 	}
 }

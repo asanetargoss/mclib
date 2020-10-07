@@ -2,7 +2,6 @@ package mchorse.mclib.client.gui.framework.elements;
 
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
-
 import mchorse.mclib.client.gui.utils.ScrollArea;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -14,7 +13,7 @@ import net.minecraft.client.renderer.GlStateManager;
  */
 public class GuiScrollElement extends GuiElement
 {
-    public ScrollArea scroll = new ScrollArea(0);
+    public ScrollArea scroll;
 
     public GuiScrollElement(Minecraft mc)
     {
@@ -25,8 +24,16 @@ public class GuiScrollElement extends GuiElement
     {
         super(mc);
 
+        this.area = this.scroll = new ScrollArea(0);
         this.scroll.direction = direction;
         this.scroll.scrollSpeed = 20;
+    }
+
+    public GuiScrollElement cancelScrollEdge()
+    {
+        this.scroll.cancelScrollEdge = true;
+
+        return this;
     }
 
     private void apply(GuiContext context)
@@ -34,10 +41,12 @@ public class GuiScrollElement extends GuiElement
         if (this.scroll.direction == ScrollArea.ScrollDirection.VERTICAL)
         {
             context.mouseY += this.scroll.scroll;
+            context.shiftY += this.scroll.scroll;
         }
         else
         {
             context.mouseX += this.scroll.scroll;
+            context.shiftX += this.scroll.scroll;
         }
     }
 
@@ -46,10 +55,12 @@ public class GuiScrollElement extends GuiElement
         if (this.scroll.direction == ScrollArea.ScrollDirection.VERTICAL)
         {
             context.mouseY -= this.scroll.scroll;
+            context.shiftY -= this.scroll.scroll;
         }
         else
         {
             context.mouseX -= this.scroll.scroll;
+            context.shiftX -= this.scroll.scroll;
         }
     }
 
@@ -58,22 +69,29 @@ public class GuiScrollElement extends GuiElement
     {
         super.resize();
 
-        this.scroll.copy(this.area);
         this.scroll.clamp();
     }
 
     @Override
     public boolean mouseClicked(GuiContext context)
     {
-        if (!this.area.isInside(context.mouseX, context.mouseY))
+        if (!this.area.isInside(context))
         {
+            if (context.isFocused() && this.isDescendant((GuiElement) context.activeElement))
+            {
+                context.unfocus();
+            }
+
             return false;
         }
 
-        boolean result = this.scroll.mouseClicked(context.mouseX, context.mouseY);
+        if (this.scroll.mouseClicked(context))
+        {
+            return true;
+        }
 
         this.apply(context);
-        result = result || super.mouseClicked(context);
+        boolean result = super.mouseClicked(context);
         this.unapply(context);
 
         return result;
@@ -82,24 +100,32 @@ public class GuiScrollElement extends GuiElement
     @Override
     public boolean mouseScrolled(GuiContext context)
     {
-        if (!this.area.isInside(context.mouseX, context.mouseY))
+        if (!this.area.isInside(context))
         {
+            if (context.isFocused() && this.isDescendant((GuiElement) context.activeElement))
+            {
+                context.unfocus();
+            }
+
             return false;
         }
 
-        boolean result = this.scroll.mouseScroll(context.mouseX, context.mouseY, context.mouseWheel);
-
         this.apply(context);
-        result = result || super.mouseScrolled(context);
+        boolean result = super.mouseScrolled(context);
         this.unapply(context);
 
-        return result;
+        if (result)
+        {
+            return true;
+        }
+
+        return this.scroll.mouseScroll(context);
     }
 
     @Override
     public void mouseReleased(GuiContext context)
     {
-        this.scroll.mouseReleased(context.mouseX, context.mouseY);
+        this.scroll.mouseReleased(context);
 
         this.apply(context);
         super.mouseReleased(context);
@@ -109,9 +135,9 @@ public class GuiScrollElement extends GuiElement
     @Override
     public void draw(GuiContext context)
     {
-        this.scroll.drag(context.mouseX, context.mouseY);
+        GuiElement lastTooltip = context.tooltip.element;
 
-        this.apply(context);
+        this.scroll.drag(context.mouseX, context.mouseY);
 
         GuiDraw.scissor(this.scroll.x, this.scroll.y, this.scroll.w, this.scroll.h, context);
         GlStateManager.pushMatrix();
@@ -125,23 +151,22 @@ public class GuiScrollElement extends GuiElement
             GlStateManager.translate(-this.scroll.scroll, 0, 0);
         }
 
+        this.apply(context);
+
         this.preDraw(context);
         super.draw(context);
         this.postDraw(context);
 
         GlStateManager.popMatrix();
-        GuiDraw.unscissor();
 
         this.scroll.drawScrollbar();
+        GuiDraw.unscissor(context);
         this.unapply(context);
 
-        if (this.scroll.direction == ScrollArea.ScrollDirection.VERTICAL)
+        /* Clear tooltip in case if it was set outside of scroll area within the scroll */
+        if (!this.area.isInside(context) && context.tooltip.element != lastTooltip)
         {
-            context.tooltip.area.y -= this.scroll.scroll;
-        }
-        else
-        {
-            context.tooltip.area.x -= this.scroll.scroll;
+            context.tooltip.set(context, null);
         }
     }
 

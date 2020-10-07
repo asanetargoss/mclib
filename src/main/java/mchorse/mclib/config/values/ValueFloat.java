@@ -5,9 +5,9 @@ import com.google.gson.JsonPrimitive;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.input.GuiTrackpadElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiLabel;
-import mchorse.mclib.config.Config;
-import mchorse.mclib.config.ConfigCategory;
-import mchorse.mclib.utils.Direction;
+import mchorse.mclib.client.gui.utils.Elements;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import mchorse.mclib.config.gui.GuiConfig;
 import mchorse.mclib.utils.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.relauncher.Side;
@@ -15,20 +15,21 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ValueFloat extends Value
 {
 	private float value;
 	private float defaultValue;
-	private float min = Float.NEGATIVE_INFINITY;
-	private float max = Float.POSITIVE_INFINITY;
+	public final float min;
+	public final float max;
 
 	public ValueFloat(String id, float defaultValue)
 	{
 		super(id);
 
 		this.defaultValue = defaultValue;
+		this.min = Float.NEGATIVE_INFINITY;
+		this.max = Float.POSITIVE_INFINITY;
 
 		this.reset();
 	}
@@ -49,46 +50,38 @@ public class ValueFloat extends Value
 		return this.value;
 	}
 
-	public void setValue(float value)
+	public void set(float value)
 	{
 		this.value = MathUtils.clamp(value, this.min, this.max);
+		this.saveLater();
 	}
 
 	@Override
 	public void reset()
 	{
-		this.setValue(this.defaultValue);
+		this.set(this.defaultValue);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public List<GuiElement> getFields(Minecraft mc, Config config, ConfigCategory category, Consumer<IConfigValue> save)
+	public List<GuiElement> getFields(Minecraft mc, GuiConfig gui)
 	{
 		GuiElement element = new GuiElement(mc);
-		GuiLabel label = new GuiLabel(mc, config.getValueTitle(category.id, this.id)).anchor(0, 0.5F);
+		GuiLabel label = Elements.label(IKey.lang(this.getTitleKey()), 0).anchor(0, 0.5F);
+		GuiTrackpadElement trackpad = new GuiTrackpadElement(mc, this);
 
-		label.resizer().parent(element.area).set(0, 0, 90, 20);
-		element.resizer().set(0, 0, 180, 20);
-		element.add(label);
+		trackpad.flex().w(90);
 
-		GuiTrackpadElement trackpad = new GuiTrackpadElement(mc, (value) ->
-		{
-			this.setValue(value);
-			save.accept(this);
-		});
+		element.flex().row(0).preferred(0).height(20);
+		element.add(label, trackpad.removeTooltip());
 
-		trackpad.resizer().parent(element.area).set(90, 0, 90, 20);
-		trackpad.limit(this.min, this.max);
-		trackpad.setValue(this.value);
-		element.add(trackpad);
-
-		return Arrays.asList(element.tooltip(config.getValueTooltip(category.id, this.id), Direction.BOTTOM));
+		return Arrays.asList(element.tooltip(IKey.lang(this.getTooltipKey())));
 	}
 
 	@Override
 	public void fromJSON(JsonElement element)
 	{
-		this.setValue(element.getAsFloat());
+		this.set(element.getAsFloat());
 	}
 
 	@Override

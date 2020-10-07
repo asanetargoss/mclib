@@ -9,6 +9,23 @@ public class Color
 	public float b;
 	public float a = 1;
 
+	public Color()
+	{}
+
+	public Color(float r, float g, float b)
+	{
+		this.r = r;
+		this.g = g;
+		this.b = b;
+	}
+
+	public Color(float r, float g, float b, float a)
+	{
+		this(r, g, b);
+
+		this.a = a;
+	}
+
 	public Color set(float r, float g, float b, float a)
 	{
 		this.r = r;
@@ -55,6 +72,11 @@ public class Color
 		return this;
 	}
 
+	public Color copy()
+	{
+		return new Color().copy(this);
+	}
+
 	public Color copy(Color color)
 	{
 		this.set(color.r, color.g, color.b, color.a);
@@ -64,7 +86,12 @@ public class Color
 
 	public int getRGBAColor()
 	{
-		return ColorUtils.rgbaToInt(this.r, this.g, this.b, this.a);
+		float r = MathUtils.clamp(this.r, 0, 1);
+		float g = MathUtils.clamp(this.g, 0, 1);
+		float b = MathUtils.clamp(this.b, 0, 1);
+		float a = MathUtils.clamp(this.a, 0, 1);
+
+		return ((int) (a * 255) << 24) | ((int) (r * 255) << 16) | ((int) (g * 255) << 8) | (int) (b * 255);
 	}
 
 	public int getRGBColor()
@@ -85,5 +112,18 @@ public class Color
 		}
 
 		return "#" + StringUtils.leftPad(Integer.toHexString(this.getRGBColor()), 6, '0');
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof Color)
+		{
+			Color color = (Color) obj;
+
+			return color.getRGBAColor() == this.getRGBAColor();
+		}
+
+		return super.equals(obj);
 	}
 }

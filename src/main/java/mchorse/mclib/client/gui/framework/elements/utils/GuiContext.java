@@ -36,6 +36,9 @@ public class GuiContext
 
 	/* Render states */
 	public float partialTicks;
+	public int shiftX;
+	public int shiftY;
+	public long tick;
 
 	public GuiContext(GuiBase screen)
 	{
@@ -45,10 +48,62 @@ public class GuiContext
 		this.keybinds.setVisible(false);
 	}
 
+	/**
+	 * Get absolute X coordinate of the mouse without the
+	 * scrolling areas applied
+	 */
+	public int mouseX()
+	{
+		return this.globalX(this.mouseX);
+	}
+
+	/**
+	 * Get absolute Y coordinate of the mouse without the
+	 * scrolling areas applied
+	 */
+	public int mouseY()
+	{
+		return this.globalY(this.mouseY);
+	}
+
+	/**
+	 * Get global X (relative to screen)
+	 */
+	public int globalX(int x)
+	{
+		return x - this.shiftX;
+	}
+
+	/**
+	 * Get global Y (relative to screen)
+	 */
+	public int globalY(int y)
+	{
+		return y - this.shiftY;
+	}
+
+	/**
+	 * Get local X (relative to current scrolling area)
+	 */
+	public int localX(int x)
+	{
+		return x + this.shiftX;
+	}
+
+	/**
+	 * Get local Y (relative to current scrolling area)
+	 */
+	public int localY(int y)
+	{
+		return y + this.shiftY;
+	}
+
 	public void setMouse(int mouseX, int mouseY)
 	{
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
+		this.shiftX = 0;
+		this.shiftY = 0;
 	}
 
 	public void setMouse(int mouseX, int mouseY, int mouseButton)
@@ -71,7 +126,12 @@ public class GuiContext
 
 	public void reset()
 	{
-		this.tooltip.set(null);
+		this.tooltip.set(null, null);
+
+		if (this.activeElement instanceof GuiElement && !((GuiElement) this.activeElement).canBeSeen())
+		{
+			this.unfocus();
+		}
 	}
 
 	/* Tooltip */
@@ -90,6 +150,11 @@ public class GuiContext
 
 	public void focus(IFocusedGuiElement element)
 	{
+		this.focus(element, false);
+	}
+
+	public void focus(IFocusedGuiElement element, boolean select)
+	{
 		if (this.activeElement == element)
 		{
 			return;
@@ -98,6 +163,11 @@ public class GuiContext
 		if (this.activeElement != null)
 		{
 			this.activeElement.unfocus(this);
+
+			if (select)
+			{
+				this.activeElement.unselect(this);
+			}
 		}
 
 		this.activeElement = element;
@@ -105,6 +175,11 @@ public class GuiContext
 		if (this.activeElement != null)
 		{
 			this.activeElement.focus(this);
+
+			if (select)
+			{
+				this.activeElement.selectAll(this);
+			}
 		}
 	}
 
@@ -113,13 +188,17 @@ public class GuiContext
 		this.focus(null);
 	}
 
+	public boolean focus(GuiElement parent, int index, int factor)
+	{
+		return this.focus(parent, index, factor, false);
+	}
+
 	/**
 	 * Focus next focusable GUI element
 	 */
-	public void focus(GuiElement parent, int index, int factor)
+	public boolean focus(GuiElement parent, int index, int factor, boolean stop)
 	{
 		List<IGuiElement> children = parent.getChildren();
-		boolean stop = factor == 0;
 
 		factor = factor >= 0 ? 1 : -1;
 		index += factor;
@@ -128,24 +207,52 @@ public class GuiContext
 		{
 			IGuiElement child = children.get(index);
 
-			if (child instanceof IFocusedGuiElement && child.isEnabled())
+			if (!child.isEnabled())
 			{
-				this.focus((IFocusedGuiElement) child);
+				continue;
+			}
 
-				return;
+			if (child instanceof IFocusedGuiElement)
+			{
+				this.focus((IFocusedGuiElement) child, true);
+
+				return true;
 			}
 			else if (child instanceof GuiElement)
 			{
-				this.focus((GuiElement) child, -1, 0);
+				int start = factor > 0 ? -1 : ((GuiElement) child).getChildren().size();
+
+				if (this.focus((GuiElement) child, start, factor, true))
+				{
+					return true;
+				}
 			}
 		}
 
 		GuiElement grandparent = parent.getParent();
+		boolean isRoot = grandparent == this.screen.root;
 
-		if (grandparent != null && !stop)
+		if (grandparent != null && !stop && (isRoot || grandparent.canBeSeen()))
 		{
-			this.focus(grandparent, grandparent.getChildren().indexOf(parent), factor);
+			/* Forgive me for this heresy, but I have no idea what other name I could give
+			 * to this variable */
+			List<IGuiElement> childs = grandparent.getChildren();
+
+			if (this.focus(grandparent, childs.indexOf(parent), factor))
+			{
+				return true;
+			}
+
+			if (isRoot)
+			{
+				if (this.focus(grandparent, factor > 0 ? -1 : childs.size() - 1, factor))
+				{
+					return true;
+				}
+			}
 		}
+
+		return false;
 	}
 
 	/* Context menu */
@@ -170,6 +277,25 @@ public class GuiContext
 		if (this.hasContextMenu() || menu == null)
 		{
 			return;
+		}
+
+		menu.setMouse(this);
+		menu.resize();
+
+		this.contextMenu = menu;
+		this.screen.root.add(menu);
+	}
+
+	public void replaceContextMenu(GuiContextMenu menu)
+	{
+		if (menu == null)
+		{
+			return;
+		}
+
+		if (this.contextMenu != null)
+		{
+			this.contextMenu.removeFromParent();
 		}
 
 		menu.setMouse(this);

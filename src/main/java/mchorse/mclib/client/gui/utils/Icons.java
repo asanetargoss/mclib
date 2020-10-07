@@ -38,6 +38,20 @@ public class Icons
 	public static final Icon EDIT = new Icon(ICONS, 80, 16);
 	public static final Icon MATERIAL = new Icon(ICONS, 96, 16);
 	public static final Icon CLOSE = new Icon(ICONS, 112, 16);
+	public static final Icon LIMB = new Icon(ICONS, 128, 16);
+	public static final Icon CODE = new Icon(ICONS, 144, 16);
 	public static final Icon MOVE_LEFT = new Icon(ICONS, 144, 16, 8, 16);
 	public static final Icon MOVE_RIGHT = new Icon(ICONS, 152, 16, 8, 16);
+	public static final Icon HELP = new Icon(ICONS, 160, 16);
+	public static final Icon LEFT_HANDLE = new Icon(ICONS, 176, 16);
+	public static final Icon MAIN_HANDLE = new Icon(ICONS, 192, 16);
+	public static final Icon RIGHT_HANDLE = new Icon(ICONS, 208, 16);
+	public static final Icon REVERSE = new Icon(ICONS, 224, 16);
+	public static final Icon BLOCK = new Icon(ICONS, 240, 16);
+
+	public static final Icon FAVORITE = new Icon(ICONS, 0, 32);
+	public static final Icon VISIBLE = new Icon(ICONS, 16, 32);
+	public static final Icon INVISIBLE = new Icon(ICONS, 32, 32);
+
+	public static final Icon CHECKBOARD = new Icon(ICONS, 0, 240, 16, 16);
 }

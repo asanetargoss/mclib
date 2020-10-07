@@ -1,13 +1,14 @@
 package mchorse.mclib.client.gui.framework.elements.buttons;
 
 import mchorse.mclib.McLib;
-import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.context.GuiContextMenu;
 import mchorse.mclib.client.gui.framework.elements.context.GuiSimpleContextMenu;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiDraw;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiInventoryElement;
 import mchorse.mclib.client.gui.utils.Area;
 import mchorse.mclib.client.gui.utils.Icons;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -27,36 +28,56 @@ public class GuiSlotElement extends GuiClickElement<GuiSlotElement>
 	public static final ResourceLocation HELMET = new ResourceLocation("minecraft:textures/items/empty_armor_slot_helmet.png");
 
 	public int slot;
-	public ItemStack stack;
-	public boolean selected;
+	public ItemStack stack = ItemStack.EMPTY;
+	public GuiInventoryElement inventory;
+
+	public GuiSlotElement(Minecraft mc, int slot, GuiInventoryElement inventory)
+	{
+		this(mc, slot, inventory, inventory::link);
+	}
+
+	public GuiSlotElement(Minecraft mc, int slot, GuiInventoryElement inventory, Consumer<GuiSlotElement> callback)
+	{
+		this(mc, slot, callback);
+
+		this.inventory = inventory;
+	}
 
 	public GuiSlotElement(Minecraft mc, int slot, Consumer<GuiSlotElement> callback)
 	{
 		super(mc, callback);
 
 		this.slot = slot;
+		this.flex().wh(24, 24);
+	}
+
+	public GuiSlotElement inventory(GuiInventoryElement inventory)
+	{
+		this.inventory = inventory;
+
+		return this;
 	}
 
 	@Override
-	public GuiContextMenu createContextMenu()
+	public GuiContextMenu createContextMenu(GuiContext context)
 	{
 		if (this.contextMenu == null)
 		{
 			return new GuiSimpleContextMenu(this.mc)
-				.action(Icons.DOWNLOAD, "Drop item down", () -> {})
-				.action(Icons.CLOSE, "Clear item", () ->
-				{
-					this.stack = null;
+				/* TODO: do something about it */
+				.action(Icons.DOWNLOAD, IKey.str("Drop item down"), () -> {})
+				.action(Icons.CLOSE, IKey.str("Clear item"), () -> {
+					this.stack = ItemStack.EMPTY;
 				});
 		}
 
-		return super.createContextMenu();
+		return super.createContextMenu(context);
 	}
 
 	@Override
 	protected void drawSkin(GuiContext context)
 	{
-		int border = this.selected ? 0xff000000 + McLib.primaryColor.get() : 0xffffffff;
+		int border = this.inventory != null && this.inventory.isVisible() && this.inventory.linked == this ? 0xff000000 + McLib.primaryColor.get() : 0xffffffff;
 
 		if (McLib.enableBorders.get())
 		{
@@ -110,9 +131,9 @@ public class GuiSlotElement extends GuiClickElement<GuiSlotElement>
 
 			GuiInventoryElement.drawItemStack(this.stack, x, y, null);
 
-			if (this.area.isInside(context.mouseX, context.mouseY))
+			if (this.area.isInside(context))
 			{
-				context.tooltip.set(this);
+				context.tooltip.set(context, this);
 			}
 
 			GlStateManager.disableDepth();

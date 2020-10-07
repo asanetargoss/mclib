@@ -4,16 +4,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.buttons.GuiToggleElement;
-import mchorse.mclib.config.Config;
-import mchorse.mclib.config.ConfigCategory;
-import mchorse.mclib.utils.Direction;
+import mchorse.mclib.config.gui.GuiConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ValueBoolean extends Value
 {
@@ -34,36 +31,33 @@ public class ValueBoolean extends Value
 		return this.value;
 	}
 
-	public void setValue(boolean value)
+	public void set(boolean value)
 	{
 		this.value = value;
+		this.saveLater();
 	}
 
 	@Override
 	public void reset()
 	{
-		this.setValue(this.defaultValue);
+		this.set(this.defaultValue);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public List<GuiElement> getFields(Minecraft mc, Config config, ConfigCategory category, Consumer<IConfigValue> save)
+	public List<GuiElement> getFields(Minecraft mc, GuiConfig gui)
 	{
-		GuiToggleElement checkbox = new GuiToggleElement(mc, config.getValueTitle(category.id, this.id), this.value, (value) ->
-		{
-			this.setValue(value.state);
-			save.accept(this);
-		});
+		GuiToggleElement toggle = new GuiToggleElement(mc, this);
 
-		checkbox.resizer().set(0, 0, 180, 20);
+		toggle.flex().reset();
 
-		return Arrays.asList(checkbox.tooltip(config.getValueTooltip(category.id, this.id), Direction.BOTTOM));
+		return Arrays.asList(toggle);
 	}
 
 	@Override
 	public void fromJSON(JsonElement element)
 	{
-		this.setValue(element.getAsBoolean());
+		this.set(element.getAsBoolean());
 	}
 
 	@Override

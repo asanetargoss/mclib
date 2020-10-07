@@ -42,9 +42,55 @@ public class GuiElements<T extends IGuiElement> implements IGuiElement
         this.elements.clear();
     }
 
+    public void prepend(T element)
+    {
+        if (element != null)
+        {
+            this.elements.add(0, element);
+        }
+    }
+
     public void add(T element)
     {
-        if (element != null) this.elements.add(element);
+        if (element != null)
+        {
+            this.elements.add(element);
+        }
+    }
+
+    public boolean addAfter(T target, T element)
+    {
+        int index = this.elements.indexOf(target);
+
+        if (index != -1 && element != null)
+        {
+            if (index + 1 >= this.elements.size())
+            {
+                this.elements.add(element);
+            }
+            else
+            {
+                this.elements.add(index + 1, element);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean addBefore(T target, T element)
+    {
+        int index = this.elements.indexOf(target);
+
+        if (index != -1 && element != null)
+        {
+            this.elements.add(index, element);
+
+            return true;
+        }
+
+        return false;
     }
 
     public void add(T... elements)

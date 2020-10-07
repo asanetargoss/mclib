@@ -5,7 +5,10 @@ import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.list.GuiListElement;
 import mchorse.mclib.client.gui.utils.Icon;
 import mchorse.mclib.client.gui.utils.Icons;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import mchorse.mclib.client.gui.utils.resizers.constraint.BoundsResizer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 
@@ -22,22 +25,26 @@ public class GuiSimpleContextMenu extends GuiContextMenu
 
 		this.actions = new GuiActionListElement(mc, (action) ->
 		{
-			action.get(0).runnable.run();
+			if (action.get(0).runnable != null)
+			{
+				action.get(0).runnable.run();
+			}
+
 			this.removeFromParent();
 		});
 
-		this.actions.resizer().parent(this.area).w(1, 0).h(1, 0);
+		this.actions.flex().relative(this).w(1, 0).h(1, 0);
 		this.add(this.actions);
 	}
 
-	public GuiSimpleContextMenu action(String label, Runnable runnable)
+	public GuiSimpleContextMenu action(IKey label, Runnable runnable)
 	{
 		return this.action(Icons.NONE, label, runnable);
 	}
 
-	public GuiSimpleContextMenu action(Icon icon, String label, Runnable runnable)
+	public GuiSimpleContextMenu action(Icon icon, IKey label, Runnable runnable)
 	{
-		if (icon == null || label == null || runnable == null)
+		if (icon == null || label == null)
 		{
 			return this;
 		}
@@ -50,7 +57,14 @@ public class GuiSimpleContextMenu extends GuiContextMenu
 	@Override
 	public void setMouse(GuiContext context)
 	{
-		this.resizer().set(context.mouseX, context.mouseY, 100, this.actions.scroll.scrollSize);
+		int w = 100;
+
+		for (Action action : this.actions.getList())
+		{
+			w = Math.max(action.getWidth(this.font), w);
+		}
+
+		this.flex().set(context.mouseX(), context.mouseY(), w, this.actions.scroll.scrollSize).bounds(context, 5);
 	}
 
 	public static class GuiActionListElement extends GuiListElement<Action>
@@ -63,7 +77,7 @@ public class GuiSimpleContextMenu extends GuiContextMenu
 		}
 
 		@Override
-		public void drawElement(Action element, int i, int x, int y, boolean hover, boolean selected)
+		public void drawListElement(Action element, int i, int x, int y, boolean hover, boolean selected)
 		{
 			int h = this.scroll.scrollItemSize;
 
@@ -74,21 +88,26 @@ public class GuiSimpleContextMenu extends GuiContextMenu
 
 			GlStateManager.color(1, 1, 1, 1);
 			element.icon.render(x + 2, y + h / 2, 0, 0.5F);
-			this.font.drawString(element.label, x + 22, y + (h - this.font.FONT_HEIGHT) / 2 + 1, 0xffffff);
+			this.font.drawString(element.label.get(), x + 22, y + (h - this.font.FONT_HEIGHT) / 2 + 1, 0xffffff);
 		}
 	}
 
 	public static class Action
 	{
 		public Icon icon;
-		public String label;
+		public IKey label;
 		public Runnable runnable;
 
-		public Action(Icon icon, String label, Runnable runnable)
+		public Action(Icon icon, IKey label, Runnable runnable)
 		{
 			this.icon = icon;
 			this.label = label;
 			this.runnable = runnable;
+		}
+
+		public int getWidth(FontRenderer font)
+		{
+			return 28 + font.getStringWidth(this.label.get());
 		}
 	}
 }

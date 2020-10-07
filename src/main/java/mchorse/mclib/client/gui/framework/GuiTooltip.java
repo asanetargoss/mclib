@@ -3,6 +3,7 @@ package mchorse.mclib.client.gui.framework;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.utils.Area;
+import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.utils.Direction;
 import mchorse.mclib.utils.MathUtils;
 import net.minecraft.client.gui.Gui;
@@ -14,13 +15,15 @@ public class GuiTooltip
     public GuiElement element;
     public Area area = new Area();
 
-    public void set(GuiElement element)
+    public void set(GuiContext context, GuiElement element)
     {
         this.element = element;
 
         if (element != null)
         {
             this.area.copy(element.area);
+            this.area.x -= context.shiftX;
+            this.area.y -= context.shiftY;
         }
     }
 
@@ -31,33 +34,25 @@ public class GuiTooltip
             return;
         }
 
-        List<String> strings = context.font.listFormattedStringToWidth(tooltip.label, tooltip.width);
+        String label = tooltip.label.get();
+
+        if (label.isEmpty())
+        {
+            return;
+        }
+
+        List<String> strings = context.font.listFormattedStringToWidth(label, tooltip.width);
 
         if (strings.isEmpty())
         {
             return;
         }
 
+        Direction dir = tooltip.direction;
         int w = strings.size() == 1 ? context.font.getStringWidth(strings.get(0)) : tooltip.width;
         int h = (context.font.FONT_HEIGHT + 3) * strings.size() - 3;
-
-        int x = this.area.ex() + 6;
-        int y = this.area.my() - h / 2;
-
-        if (tooltip.direction == Direction.TOP)
-        {
-            x = this.area.mx() - w / 2;
-            y = this.area.y - h - 6;
-        }
-        else if (tooltip.direction == Direction.LEFT)
-        {
-            x = this.area.x - w - 6;
-        }
-        else if (tooltip.direction == Direction.BOTTOM)
-        {
-            x = this.area.mx() - w / 2;
-            y = this.area.ey() + 6;
-        }
+        int x = this.area.x(dir.anchorX) - (int) (w * (1 - dir.anchorX)) + 6 * dir.factorX;
+        int y = this.area.y(dir.anchorY) - (int) (h * (1 - dir.anchorY)) + 6 * dir.factorY;
 
         x = MathUtils.clamp(x, 3, context.screen.width - w - 3);
         y = MathUtils.clamp(y, 3, context.screen.height - h - 3);
@@ -81,17 +76,17 @@ public class GuiTooltip
 
     public static class Tooltip
     {
-        public String label;
+        public IKey label;
         public int width = 200;
         public Direction direction;
 
-        public Tooltip(String label, Direction direction)
+        public Tooltip(IKey label, Direction direction)
         {
             this.label = label;
             this.direction = direction;
         }
 
-        public Tooltip(String label, int width, Direction direction)
+        public Tooltip(IKey label, int width, Direction direction)
         {
             this(label, direction);
             this.width = width;
