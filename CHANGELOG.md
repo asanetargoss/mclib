@@ -1,6 +1,127 @@
-# Change Log
+## Version 2.0.3
 
-McLib's change log.
+This minor patch features enormous improvements to keyframe editing GUIs.
+
+<a href="https://youtu.be/6eil_zvv1KI"><img src="https://img.youtube.com/vi/6eil_zvv1KI/0.jpg"></a> 
+
+* Added value editing through the value field in the dope sheet editor
+* Added bezier handles editing in tick and value fields when selecting them (instead of showing tick and value of the keyframe)
+* Added multi-selection of keyframes in graph/dope sheet GUI elements:
+    * You can select them by Shift + Dragging an area in which all the keyframes will be selected
+    * You can select individual keyframes by Shift + clicking on them to select not selected keyframe or deselect selected keyframe
+    * You can move multiple-selected keyframes or its handles (depending on selection mode) by editing tick or value fields or dragging
+    * You can also duplicate multiple selected keyframes using the same old way of holding alt while clicking else where to duplicate
+* Added context menu to graph/dope sheet elements to:
+    * Remove selected keyframes
+    * Switch selection between keyframe or its handles
+* Added new interpolations (with in, out, in/out easings): back, elastic and bounce
+* Fixed last keyframe's right bezier handle being editable
+
+## Version 2.0.2
+
+This is a small quick patch which features a couple of neat GUI tweaks.
+
+* Added a feature to shift the mouse cursor to the opposite side of the screen when dragging trackpad fields
+* Added tracking of how many times keystrokes were pressed recently
+* Added evaluating of math expressions within trackpad fields upon pressing Alt + Enter when focused
+* Changed trackpad fields to use horizontal mouse offset, instead of distance
+* Changed zooming in/out in model renderers be more adaptive (zoom factor changes depending on current scale, which makes it faster to zoom in and out)
+* Fixed crash with index out of bounds with list elements (reported by Lycoon)
+* Fixed bug with math expressions having `(` in the beginning and `)` in the end of the expression being invalid
+* Moved keyframe code from Aperture (for future features)
+
+## Version 2.0.1
+
+This is a small quick patch.
+
+* Added more characters which are allowed to be input into text fields with filename constraint (`[`, `]`, `!`, `@`, `#`, `$`, `%`, `^`, `&`, `(` and `)`)
+* Fixed yellow highlight in the texture picker
+* Fixed mouse wheel scrolling going through when scrollbar reaches the end in the texture picker (suggested by Lucatim)
+* Updated Chinese strings for 2.0 (thanks to Chunk7, KuenYo_ and H2SO4GepaoAX)
+
+## Version 2.0
+
+This enormous update drastically improves the GUI system that is used in my mods, as well as adding its own configuration system, and different APIs to make it easier to develop GUI stuff. It's also allows you to slightly personalize the GUI.
+
+<a href="https://youtu.be/96_VnqywyRY"><img src="https://img.youtube.com/vi/96_VnqywyRY/0.jpg"></a> 
+
+* Added configuration system
+* Added Dashboard GUI from Blockbuster mod
+    * Added `Numpad*` keybinds to open a specific panel
+* Added Icon API to ease texture coordinate hell
+* Added `GuiUtils.openWebLink(String)`
+* Added `MatrixUtils` class from Blockbuster mod
+* Added `Timer` class to keep mark and keep track of timed operations
+* Added config options:
+    * Primary color — sets the default color for all sorts of GUI elements, including selection and active colors
+    * Button borders — toggles black borders around button elements
+    * Checkbox instead of toggle element — toggles toggle element rendering as a checkbox
+    * Model grid — toggles grid rendering instead of a grass block in model renderer
+    * GUI scale — allows to change the GUI scale of McLib's GUIs without changing Minecraft's GUI scale
+    * Mouse cursor rendering — toggles mouse cursor rendering (moved from Aperture mod)
+    * Keystrokes rendering — toggles pressed keystrokes rendering
+    * Background image and background color — allows to set a custom image background or background color
+    * Scrollbars options — allow you to customize appearance of scrollbar
+    * Max. packet size — vanilla tweak option which allows to increase the limit of Minecraft's network messages
+* Fixed `Interpolations.envelope` going below `0` when outside of envelope's range
+* Fixed texture picker messing up the resource location in the root
+* Improved math expression parser:
+    * Added more math functions: 
+        * `round(x)` — round `x` to nearest integer
+        * `ceil(x)` — round `x` to upper integer
+        * `trunc(x)` — truncate `x`, floor `x` when `x` is positive, and ceil `x` when it's negative
+        * `max(a, b)` — return a bigger value between `a` and `b`
+        * `min(a, b)` — return a smaller value between `a` and `b`
+        * `exp(x)` — e constant to the power of `x`
+        * `ln(x)` — natural logarithm of `x`
+        * `sqrt(x)` — square root of `x`
+        * `mod(x, d)` — get remainder of `x` divided by `d`, equivalent to `x % d`
+        * `pow(x, p)` — `x` to the power of `p`, equivalent to `x^p`
+        * `lerp(a, b, x)` — linearly interpolate between `a` to `b` using `x` as a factor
+    * Added ternary operator support, for example `0 ? 1 : 5 = 5`, `1 ? 4 : 2 = 4` or `x >= 0 ? 5 : -5`, equals `5` when `x` is positive, and `-5` if `x` is negative
+    * Added boolean comparison operators which return `1` if condition is met, or `0` otherwise (these operators are also have the highest precedence): 
+        * `&&` — `1` if both operands are non-zero
+        * `||` — `1` if only one operand non-zero
+        * `<` — `1` if left operand is less than second
+        * `<=` — `1` if left operand is less or equal to second operand
+        * `>=` — `1` if left operand is greater or equal to second operand
+        * `>` — `1` if left operand is greater to second operand
+        * `==` — `1` if left operand equals to second
+        * `!=` — `1` if left operand isn't equal to second
+    * Added `!` operator which negates an expression, i.e. if expression is non-zero, then it returns `0`, otherwise if expression is `0` it returns `1`, for example: `!(5 + 2) = 0` and `!(2 - 2) = 1`
+* Improved `GuiDraw.scissor` to support nested scissor test
+* Refactored fully the GUI system:
+    * Added current focused element to fix multiple selected text fields bug
+        * Added an ability to Tab betweeen input fields
+        * Added `Esc` keybind to unfocus the element when focused
+    * Added tooltip support to every element
+    * Added support for horizontal scroll in scroll element
+    * Added context menu API
+    * Added keybind support for individual GUI elements
+        * Added `F9` keybind to any GUI screen to view all available keybinds
+    * Added color picker element
+    * Changed track pad element:
+        * Added increment buttons to incremeent by one
+        * Changed dragging from vertical distance to horizontal distance
+        * Changed from `float` to `double` for better precision
+        * Removed label option
+    * Changed modal elements to remove themselves from parent instead of unsetting the delegate
+    * Fixed labels staying the same after changing to a different language
+    * Improved list element:
+        * Added label-value lists
+        * Added multi-selection support (shift + click adds selects an additional element)
+        * Added drag-n-drop sorting support
+        * Added direct filtering of elements support
+        * Added interpolations list from Blockbuster mod
+        * Added support for horizontal lists
+    * Refactored resizers to support many new placement features, including automatic layout resizers for responsive row, column and grid placement of the elements
+    * Refactored inventory and slot elements
+    * Refactored button elements:
+        * Added for circulate button element to right click for previous value
+    * Refactored model renderer:
+        * Added picking code from Blockbuster
+        * Changed the navigation within to orbit style
+        * Fixed `update` method to be called correctly regardless of framerate
 
 ## Version 1.0.4
 

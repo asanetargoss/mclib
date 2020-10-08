@@ -1,13 +1,25 @@
 package mchorse.mclib.client.gui.framework.elements;
 
+import mchorse.mclib.client.gui.framework.GuiBase;
 import mchorse.mclib.client.gui.framework.GuiTooltip;
+import mchorse.mclib.client.gui.framework.elements.context.GuiContextMenu;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
+import mchorse.mclib.client.gui.utils.KeybindManager;
 import mchorse.mclib.client.gui.utils.Area;
-import mchorse.mclib.client.gui.utils.Resizer;
+import mchorse.mclib.client.gui.utils.keys.IKey;
+import mchorse.mclib.client.gui.utils.resizers.IResizer;
+import mchorse.mclib.client.gui.utils.resizers.Flex;
+import mchorse.mclib.utils.Direction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
 
 @SideOnly(Side.CLIENT)
 public class GuiElement extends Gui implements IGuiElement
@@ -20,12 +32,52 @@ public class GuiElement extends Gui implements IGuiElement
     /**
      * Resizer of this class
      */
-    public Resizer resizer;
+    protected IResizer resizer;
+
+    /**
+     * Flex resizer of this class
+     */
+    protected Flex flex;
+
+    /**
+     * Tooltip instance
+     */
+    public GuiTooltip.Tooltip tooltip;
+
+    /**
+     * Keybind manager
+     */
+    public KeybindManager keybinds;
+
+    /**
+     * Context menu supplier
+     */
+    public Supplier<GuiContextMenu> contextMenu;
+
+    /**
+     * Hide tooltip
+     */
+    public boolean hideTooltip;
+
+    /**
+     * Whether this element should be ignored by post resizers
+     */
+    public boolean ignored;
+
+    /**
+     * Whether this element is a container
+     */
+    protected boolean container;
+
+    /**
+     * Parent GUI element
+     */
+    protected GuiElement parent;
 
     /**
      * Children elements
      */
-    public GuiElements<IGuiElement> children;
+    private GuiElements<IGuiElement> children;
 
     /**
      * Whether this element is enabled (can handle any input) 
@@ -50,30 +102,312 @@ public class GuiElement extends Gui implements IGuiElement
         this.font = mc.fontRendererObj;
     }
 
-    public GuiElement createChildren()
+    /* Hierarchy management */
+
+    public GuiElement getParent()
     {
-        /* Create children only if they're absent */
+        return this.parent;
+    }
+
+    public boolean hasParent()
+    {
+        return this.parent != null;
+    }
+
+    public boolean isDescendant(GuiElement element)
+    {
+        if (this == element)
+        {
+            return false;
+        }
+
+        while (element != null)
+        {
+            if (element.parent == this)
+            {
+                return true;
+            }
+
+            element = element.parent;
+        }
+
+        return false;
+    }
+
+    public List<IGuiElement> getChildren()
+    {
         if (this.children == null)
         {
-            this.children = new GuiElements<IGuiElement>();
+            return Collections.emptyList();
         }
+
+        return this.children.elements;
+    }
+
+    public <T extends GuiElement> List<T> getChildren(Class<T> clazz)
+    {
+        return getChildren(clazz, new ArrayList<T>());
+    }
+
+    public <T extends GuiElement> List<T> getChildren(Class<T> clazz, List<T> list)
+    {
+        for (IGuiElement element : this.getChildren())
+        {
+            if (element.getClass() == clazz)
+            {
+                list.add(clazz.cast(element));
+            }
+
+            if (element instanceof GuiElement)
+            {
+                ((GuiElement) element).getChildren(clazz, list);
+            }
+        }
+
+        return list;
+    }
+
+    public void prepend(IGuiElement element)
+    {
+        if (this.children == null)
+        {
+            this.children = new GuiElements<IGuiElement>(this);
+        }
+
+        this.markChild(element);
+        this.children.prepend(element);
+    }
+
+    public void add(IGuiElement element)
+    {
+        if (this.children == null)
+        {
+            this.children = new GuiElements<IGuiElement>(this);
+        }
+
+        this.markChild(element);
+        this.children.add(element);
+    }
+
+    public void add(IGuiElement... elements)
+    {
+        if (this.children == null)
+        {
+            this.children = new GuiElements<IGuiElement>(this);
+        }
+
+        for (IGuiElement element : elements)
+        {
+            this.markChild(element);
+            this.children.add(element);
+        }
+    }
+
+    public void addAfter(IGuiElement target, IGuiElement element)
+    {
+        if (this.children == null)
+        {
+            return;
+        }
+
+        if (this.children.addAfter(target, element))
+        {
+            this.markChild(element);
+        }
+    }
+
+    public void addBefore(IGuiElement target, IGuiElement element)
+    {
+        if (this.children == null)
+        {
+            return;
+        }
+
+        if (this.children.addBefore(target, element))
+        {
+            this.markChild(element);
+        }
+    }
+
+    private void markChild(IGuiElement element)
+    {
+        if (element instanceof GuiElement)
+        {
+            GuiElement child = (GuiElement) element;
+
+            child.parent = this;
+
+            if (this.resizer != null)
+            {
+                this.resizer.add(this, child);
+            }
+        }
+    }
+
+    public void removeAll()
+    {
+        if (this.children == null)
+        {
+            return;
+        }
+
+        for (IGuiElement element : this.children.elements)
+        {
+            if (element instanceof GuiElement)
+            {
+                if (this.resizer != null)
+                {
+                    this.resizer.remove(this, (GuiElement) element);
+                }
+
+                ((GuiElement) element).parent = null;
+            }
+        }
+
+        this.children.clear();
+    }
+
+    public void removeFromParent()
+    {
+        if (this.hasParent())
+        {
+            this.parent.remove(this);
+        }
+    }
+
+    public void remove(GuiElement element)
+    {
+        if (this.children.elements.remove(element))
+        {
+            if (this.resizer != null)
+            {
+                this.resizer.remove(this, element);
+            }
+
+            element.parent = null;
+        }
+    }
+
+    /* Setters */
+
+    public GuiElement removeTooltip()
+    {
+        this.tooltip = null;
+
+        return this;
+    }
+
+    public GuiElement tooltip(IKey label)
+    {
+        this.tooltip = new GuiTooltip.Tooltip(label, Direction.BOTTOM);
+
+        return this;
+    }
+
+    public GuiElement tooltip(IKey label, Direction direction)
+    {
+        this.tooltip = new GuiTooltip.Tooltip(label, direction);
+
+        return this;
+    }
+
+    public GuiElement tooltip(IKey label, int width, Direction direction)
+    {
+        this.tooltip = new GuiTooltip.Tooltip(label, width, direction);
+
+        return this;
+    }
+
+    public GuiElement hideTooltip()
+    {
+        this.hideTooltip = true;
+
+        return this;
+    }
+
+    /* Keybind manager */
+
+    public KeybindManager keys()
+    {
+        if (this.keybinds == null)
+        {
+            this.keybinds = new KeybindManager();
+        }
+
+        return this.keybinds;
+    }
+
+    /* Container stuff */
+
+    public GuiElement markContainer()
+    {
+        this.container = true;
+
+        return this;
+    }
+
+    public GuiElement markIgnored()
+    {
+        this.ignored = true;
+
+        return this;
+    }
+
+    public boolean isContainer()
+    {
+        return this.container;
+    }
+
+    public GuiElement getParentContainer()
+    {
+        GuiElement element = this.getParent();
+
+        while (element != null && !element.isContainer())
+        {
+            element = element.getParent();
+        }
+
+        return element;
+    }
+
+    public GuiElement context(Supplier<GuiContextMenu> supplier)
+    {
+        this.contextMenu = supplier;
 
         return this;
     }
 
     /* Resizer methods */
 
-    public Resizer resizer()
+    public Flex flex()
     {
-        if (this.resizer == null)
+        if (this.flex == null)
         {
-            this.resizer = new Resizer();
+            this.flex = new Flex(this);
+
+            if (this.resizer == null)
+            {
+                this.resizer = this.flex;
+            }
         }
 
+        return this.flex;
+    }
+
+    public void flex(Flex flex)
+    {
+        if (flex != null)
+        {
+            this.flex = flex;
+        }
+    }
+
+    public IResizer resizer()
+    {
         return this.resizer;
     }
 
-    public GuiElement setResizer(Resizer resizer)
+    public GuiElement resizer(IResizer resizer)
     {
         this.resizer = resizer;
 
@@ -109,11 +443,45 @@ public class GuiElement extends Gui implements IGuiElement
         this.visible = !this.visible;
     }
 
+    /**
+     * Whether element can be seen on the screen
+     */
+    public boolean canBeSeen()
+    {
+        if (!this.hasParent() || !this.isVisible())
+        {
+            return false;
+        }
+
+        GuiElement last = this;
+        GuiElement element = this.getParent();
+
+        while (element != null)
+        {
+            if (!element.isVisible())
+            {
+                return false;
+            }
+
+            GuiElement parent = element.getParent();
+
+            if (parent instanceof GuiDelegateElement && ((GuiDelegateElement) parent).delegate != element)
+            {
+                return false;
+            }
+
+            last = element;
+            element = parent;
+        }
+
+        return last instanceof GuiBase.GuiRootElement;
+    }
+
     /* Overriding those methods so it would be much easier to 
      * override only needed methods in subclasses */
 
     @Override
-    public void resize(int width, int height)
+    public void resize()
     {
         if (this.resizer != null)
         {
@@ -122,76 +490,135 @@ public class GuiElement extends Gui implements IGuiElement
 
         if (this.children != null)
         {
-            this.children.resize(width, height);
+            this.children.resize();
+        }
+
+        if (this.resizer != null)
+        {
+            this.resizer.postApply(this.area);
         }
     }
 
     @Override
-    public boolean mouseClicked(int mouseX, int mouseY, int mouseButton)
+    public boolean mouseClicked(GuiContext context)
+    {
+        if (this.children != null && this.children.mouseClicked(context))
+        {
+            return true;
+        }
+
+        if (this.area.isInside(context) && context.mouseButton == 1)
+        {
+            if (!context.hasContextMenu())
+            {
+                GuiContextMenu menu = this.createContextMenu(context);
+
+                if (menu != null)
+                {
+                    context.setContextMenu(menu);
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public void clickItself(GuiContext context)
+    {
+        this.clickItself(context, 0);
+    }
+
+    public void clickItself(GuiContext context, int mouseButton)
+    {
+        if (!this.isEnabled())
+        {
+            return;
+        }
+
+        int mouseX = context.mouseX;
+        int mouseY = context.mouseY;
+        int button = context.mouseButton;
+
+        context.mouseX = this.area.x + 1;
+        context.mouseY = this.area.y + 1;
+        context.mouseButton = mouseButton;
+
+        this.mouseClicked(context);
+
+        context.mouseX = mouseX;
+        context.mouseY = mouseY;
+        context.mouseButton = button;
+    }
+
+    /**
+     * Create a context menu instance
+     *
+     * Some subclasses of GuiElement might want to override this method in order to create their
+     * own context menus.
+     */
+    public GuiContextMenu createContextMenu(GuiContext context)
+    {
+        return this.contextMenu == null ? null : this.contextMenu.get();
+    }
+
+    @Override
+    public boolean mouseScrolled(GuiContext context)
+    {
+        return this.children != null && this.children.mouseScrolled(context);
+    }
+
+    @Override
+    public void mouseReleased(GuiContext context)
     {
         if (this.children != null)
         {
-            return this.children.mouseClicked(mouseX, mouseY, mouseButton);
+            this.children.mouseReleased(context);
+        }
+    }
+
+    @Override
+    public boolean keyTyped(GuiContext context)
+    {
+        if (this.children != null && this.children.keyTyped(context))
+        {
+            return true;
+        }
+
+        if (this.keybinds != null && !context.isFocused() && this.keybinds.check(context.keyCode, this.area.isInside(context)))
+        {
+            return true;
         }
 
         return false;
     }
 
     @Override
-    public boolean mouseScrolled(int mouseX, int mouseY, int scroll)
+    public void draw(GuiContext context)
     {
-        if (this.children != null)
+        if (this.keybinds != null && this.isEnabled())
         {
-            return this.children.mouseScrolled(mouseX, mouseY, scroll);
+            this.keybinds.add(context.keybinds, this.area.isInside(context));
         }
 
-        return false;
-    }
-
-    @Override
-    public void mouseReleased(int mouseX, int mouseY, int state)
-    {
-        if (this.children != null)
+        if (this.tooltip != null && this.area.isInside(context))
         {
-            this.children.mouseReleased(mouseX, mouseY, state);
+            context.tooltip.set(context, this);
         }
-    }
-
-    @Override
-    public boolean hasActiveTextfields()
-    {
-        if (this.children != null)
+        else if ((this.hideTooltip || this.container) && this.area.isInside(context))
         {
-            return this.children.hasActiveTextfields();
+            context.reset();
         }
 
-        return false;
-    }
-
-    @Override
-    public void unfocus()
-    {
         if (this.children != null)
         {
-            this.children.unfocus();
+            this.children.draw(context);
         }
     }
 
-    @Override
-    public void keyTyped(char typedChar, int keyCode)
+	public void drawTooltip(GuiContext context, Area area)
     {
-        if (this.children != null)
-        {
-            this.children.keyTyped(typedChar, keyCode);
-        }
-    }
-
-    @Override
-    public void draw(GuiTooltip tooltip, int mouseX, int mouseY, float partialTicks)
-    {
-        if (this.children != null)
-        {
-            this.children.draw(tooltip, mouseX, mouseY, partialTicks);
-        }
+        context.tooltip.draw(this.tooltip, context);
     }
 }
