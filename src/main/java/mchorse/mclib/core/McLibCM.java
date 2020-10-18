@@ -7,7 +7,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.MCVersion;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.Name;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.SortingIndex;
 
-@Name("McLib core mod")
+@Name("DominionLib core mod")
 @MCVersion("1.12.2")
 @SortingIndex(1)
 public class McLibCM implements IFMLLoadingPlugin

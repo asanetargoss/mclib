@@ -40,7 +40,7 @@ public class SimpleReloadableResourceManagerTransformer extends ClassMethodTrans
 
             method.instructions.insert(list);
 
-            System.out.println("McLib: successfully patched getResource!");
+            System.out.println("DominionLib: successfully patched getResource!");
         }
     }
 }
