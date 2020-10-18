@@ -74,12 +74,12 @@ public class McLib
         ConfigBuilder builder = event.createBuilder(MOD_ID);
 
         debugPanel = builder.category("appearance").getBoolean("debug_panel", false);
-        primaryColor = builder.getInt("primary_color", 0x0088ff).color();
+        primaryColor = builder.getInt("primary_color", 0x00B8A3).color();
         debugPanel.invisible();
-        enableBorders = builder.getBoolean("enable_borders", false);
+        enableBorders = builder.getBoolean("enable_borders", true);
         enableCheckboxRendering = builder.getBoolean("enable_checkbox_rendering", false);
         enableGridRendering = builder.getBoolean("enable_grid_rendering", true);
-        userIntefaceScale = builder.getInt("user_interface_scale", 2, 0, 4);
+        userIntefaceScale = builder.getInt("user_interface_scale", 0, 0, 4);
 
         favoriteColors = new ValueColors("favorite_colors");
         favoriteColors.invisible();
@@ -97,7 +97,7 @@ public class McLib
         );
 
         backgroundImage = builder.category("background").getRL("image",  null);
-        backgroundColor = builder.getInt("color",  0xcc000000).colorAlpha();
+        backgroundColor = builder.getInt("color",  0x3700B8A3).colorAlpha();
 
         scrollbarFlat = builder.category("scrollbars").getBoolean("flat", false);
         scrollbarShadow = builder.getInt("shadow", 0x88000000).colorAlpha();
