@@ -47,7 +47,7 @@ public class CPacketCustomPayloadTransformer extends ClassTransformer
 
 		if (!targets.isEmpty())
 		{
-			System.out.println("McLib: successfully patched " + method.name + "!");
+			System.out.println("DominionLib: successfully patched " + method.name + "!");
 		}
 	}
 }

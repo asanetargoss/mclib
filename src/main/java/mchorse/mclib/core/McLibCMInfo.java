@@ -7,7 +7,7 @@ public class McLibCMInfo extends DummyModContainer
     @Override
     public String getName()
     {
-        return "McLib core mod";
+        return "DominionLib core mod";
     }
 
     @Override

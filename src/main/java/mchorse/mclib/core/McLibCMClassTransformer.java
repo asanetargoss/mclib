@@ -14,13 +14,13 @@ public class McLibCMClassTransformer extends CoreClassTransformer
     {
         if (checkName(name, "bxi", "net.minecraft.client.resources.SimpleReloadableResourceManager"))
         {
-            System.out.println("McLib: Transforming SimpleReloadableResourceManager class (" + name + ")");
+            System.out.println("DominionLib: Transforming SimpleReloadableResourceManager class (" + name + ")");
 
             return this.resourcePack.transform(name, basicClass);
         }
         else if (checkName(name, "lh", "net.minecraft.network.play.client.CPacketCustomPayload"))
         {
-            System.out.println("McLib: Transforming CPacketCustomPayloadTransformer class (" + name + ")");
+            System.out.println("DominionLib: Transforming CPacketCustomPayloadTransformer class (" + name + ")");
 
             return this.customPayload.transform(name, basicClass);
         }
