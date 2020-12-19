@@ -16,6 +16,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ValueRL extends Value
 {
@@ -60,15 +61,18 @@ public class ValueRL extends Value
 	{
 		GuiElement element = new GuiElement(mc);
 		GuiLabel label = Elements.label(IKey.lang(this.getTitleKey()), 0).anchor(0, 0.5F);
-		GuiButtonElement pick = new GuiButtonElement(mc, IKey.lang("mclib.gui.pick_texture"),  (button) ->
+		ValueRL thisValueRL = this;
+		// We don't use the lambda shorthand due to it putting an invisible method in this class without the @SideOnly annotation.
+		// The anonymous class notation used here causes the creation of a separate .class file, which will be loaded only when needed. :)
+		GuiButtonElement pick = new GuiButtonElement(mc, IKey.lang("mclib.gui.pick_texture"), new Consumer<GuiButtonElement>() { @Override public void accept(GuiButtonElement button)
 		{
 			if (picker == null)
 			{
 				picker = new GuiTexturePicker(mc, null);
 			}
 
-			picker.callback = this::set;
-			picker.fill(this.value);
+			picker.callback = thisValueRL::set;
+			picker.fill(thisValueRL.value);
 			picker.flex().relative(gui).wh(1F, 1F);
 			picker.resize();
 
@@ -78,7 +82,7 @@ public class ValueRL extends Value
 			}
 
 			gui.add(picker);
-		});
+		}});
 
 		pick.flex().w(90);
 
