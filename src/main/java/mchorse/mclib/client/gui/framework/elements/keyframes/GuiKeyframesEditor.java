@@ -18,6 +18,7 @@ import mchorse.mclib.utils.keyframes.KeyframeEasing;
 import mchorse.mclib.utils.keyframes.KeyframeInterpolation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import org.lwjgl.input.Keyboard;
 
 public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends GuiElement
 {
@@ -38,6 +39,7 @@ public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends G
         super(mc);
 
         this.frameButtons = new GuiElement(mc);
+        this.frameButtons.flex().relative(this).x(1F, -10).y(10).w(170).h(50).anchorX(1F);
         this.frameButtons.setVisible(false);
         this.tick = new GuiTrackpadElement(mc, this::setTick);
         this.tick.limit(Integer.MIN_VALUE, Integer.MAX_VALUE, true).tooltip(IKey.lang("mclib.gui.keyframes.tick"));
@@ -68,6 +70,9 @@ public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends G
         /* Add all elements */
         this.add(this.graph, this.frameButtons);
         this.frameButtons.add(this.tick, this.value, this.interp, this.easing, this.interpolations);
+
+        this.keys().register(IKey.lang("mclib.gui.keyframes.context.maximize"), Keyboard.KEY_HOME, this::resetView).inside();
+        this.keys().register(IKey.lang("mclib.gui.keyframes.context.select_all"), Keyboard.KEY_A, this::selectAll).held(Keyboard.KEY_LCONTROL).inside();
     }
 
     protected abstract T createElement(Minecraft mc);
@@ -138,10 +143,13 @@ public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends G
     @Override
     public GuiContextMenu createContextMenu(GuiContext context)
     {
+        GuiSimpleContextMenu menu = new GuiSimpleContextMenu(this.mc);
+
+        menu.action(Icons.MAXIMIZE, IKey.lang("mclib.gui.keyframes.context.maximize"), this::resetView);
+        menu.action(Icons.FULLSCREEN, IKey.lang("mclib.gui.keyframes.context.select_all"), this::selectAll);
+
         if (this.graph.which != Selection.NOT_SELECTED)
         {
-            GuiSimpleContextMenu menu = new GuiSimpleContextMenu(this.mc);
-
             menu.action(Icons.REMOVE, IKey.lang("mclib.gui.keyframes.context.remove"), this::removeSelectedKeyframes);
 
             if (this.graph.which != Selection.NOT_SELECTED && this.graph.isMultipleSelected())
@@ -150,11 +158,9 @@ public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends G
                 menu.action(Icons.MAIN_HANDLE, IKey.lang("mclib.gui.keyframes.context.to_main"), () -> this.graph.which = Selection.KEYFRAME);
                 menu.action(Icons.RIGHT_HANDLE, IKey.lang("mclib.gui.keyframes.context.to_right"), () -> this.graph.which = Selection.RIGHT_HANDLE);
             }
-
-            return menu;
         }
 
-        return super.createContextMenu(context);
+        return menu;
     }
 
     protected void doubleClick(int mouseX, int mouseY)
@@ -167,6 +173,16 @@ public abstract class GuiKeyframesEditor<T extends GuiKeyframeElement> extends G
     public boolean mouseScrolled(GuiContext context)
     {
         return super.mouseScrolled(context) || this.area.isInside(context.mouseX, context.mouseY);
+    }
+
+    public void resetView()
+    {
+        this.graph.resetView();
+    }
+
+    public void selectAll()
+    {
+        this.graph.selectAll();
     }
 
     public void removeSelectedKeyframes()

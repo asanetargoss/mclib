@@ -24,6 +24,9 @@ public abstract class GuiKeyframeElement extends GuiElement
     public Selection which = Selection.NOT_SELECTED;
     public int duration;
 
+    public double minZoom = 0.01D;
+    public double maxZoom = 1000D;
+
     public boolean sliding;
     public boolean dragging;
     protected boolean moving;
@@ -34,13 +37,20 @@ public abstract class GuiKeyframeElement extends GuiElement
     protected double lastT;
     protected double lastV;
 
-    protected Scale scaleX = new Scale(false);
+    protected Scale scaleX;
 
     public GuiKeyframeElement(Minecraft mc, Consumer<Keyframe> callback)
     {
         super(mc);
 
         this.callback = callback;
+        this.scaleX = new Scale(this.area, false);
+        this.scaleX.anchor(0.5F);
+    }
+
+    public Scale getScaleX()
+    {
+        return this.scaleX;
     }
 
     protected void setKeyframe(Keyframe current)
@@ -70,42 +80,14 @@ public abstract class GuiKeyframeElement extends GuiElement
 
     public abstract void resetView();
 
-    /**
-     * Recalculate grid's multipliers
-     */
-    protected void recalcMultipliers()
-    {
-        this.scaleX.mult = this.recalcMultiplier(this.scaleX.zoom);
-    }
-
-    protected int recalcMultiplier(double zoom)
-    {
-        int factor = (int) (60F / zoom);
-
-        /* Hardcoded caps */
-        if (factor > 10000) factor = 10000;
-        else if (factor > 5000) factor = 5000;
-        else if (factor > 2500) factor = 2500;
-        else if (factor > 1000) factor = 1000;
-        else if (factor > 500) factor = 500;
-        else if (factor > 250) factor = 250;
-        else if (factor > 100) factor = 100;
-        else if (factor > 50) factor = 50;
-        else if (factor > 25) factor = 25;
-        else if (factor > 10) factor = 10;
-        else if (factor > 5) factor = 5;
-
-        return factor <= 0 ? 1 : factor;
-    }
-
     public int toGraphX(double tick)
     {
-        return (int) (this.scaleX.to(tick)) + this.area.mx();
+        return (int) (this.scaleX.to(tick));
     }
 
     public double fromGraphX(int mouseX)
     {
-        return this.scaleX.from(mouseX - this.area.mx());
+        return this.scaleX.from(mouseX);
     }
 
     /* Abstract methods */
@@ -119,6 +101,8 @@ public abstract class GuiKeyframeElement extends GuiElement
 
     public void selectByDuration(long duration)
     {}
+
+    public abstract void selectAll();
 
     public abstract int getSelectedCount();
 
@@ -224,7 +208,7 @@ public abstract class GuiKeyframeElement extends GuiElement
         this.scrolling = true;
         this.lastX = mouseX;
         this.lastY = mouseY;
-        this.lastT = this.scaleX.shift;
+        this.lastT = this.scaleX.getShift();
     }
 
     @Override
@@ -245,7 +229,6 @@ public abstract class GuiKeyframeElement extends GuiElement
             }
 
             this.zoom(scroll);
-            this.recalcMultipliers();
 
             return true;
         }
@@ -255,20 +238,7 @@ public abstract class GuiKeyframeElement extends GuiElement
 
     protected void zoom(int scroll)
     {
-        this.scaleX.zoom(Math.copySign(this.getZoomFactor(this.scaleX.zoom), scroll), 0.01F, 50F);
-    }
-
-    protected double getZoomFactor(double zoom)
-    {
-        double factor = 0;
-
-        if (zoom < 0.2F) factor = 0.005F;
-        else if (zoom < 1.0F) factor = 0.025F;
-        else if (zoom < 2.0F) factor = 0.1F;
-        else if (zoom < 15.0F) factor = 0.5F;
-        else if (zoom <= 50.0F) factor = 1F;
-
-        return factor;
+        this.scaleX.zoom(Math.copySign(this.scaleX.getZoomFactor(), scroll), this.minZoom, this.maxZoom);
     }
 
     @Override
@@ -355,12 +325,13 @@ public abstract class GuiKeyframeElement extends GuiElement
     protected void drawGrid(GuiContext context)
     {
         /* Draw scaling grid */
-        int hx = this.duration / this.scaleX.mult;
+        int mult = this.scaleX.getMult();
+        int hx = this.duration / mult;
         int ht = (int) this.fromGraphX(this.area.x);
 
-        for (int j = Math.max(ht / this.scaleX.mult, 0); j <= hx; j++)
+        for (int j = Math.max(ht / mult, 0); j <= hx; j++)
         {
-            int x = this.toGraphX(j * this.scaleX.mult);
+            int x = this.toGraphX(j * mult);
 
             if (x >= this.area.ex())
             {
@@ -368,7 +339,7 @@ public abstract class GuiKeyframeElement extends GuiElement
             }
 
             Gui.drawRect(x, this.area.y, x + 1, this.area.ey(), 0x44ffffff);
-            this.font.drawString(String.valueOf(j * this.scaleX.mult), x + 4, this.area.y + 4, 0xffffff);
+            this.font.drawString(String.valueOf(j * mult), x + 4, this.area.y + 4, 0xffffff);
         }
     }
 
@@ -407,7 +378,7 @@ public abstract class GuiKeyframeElement extends GuiElement
 
     protected void scrolling(int mouseX, int mouseY)
     {
-        this.scaleX.shift = -(mouseX - this.lastX) / this.scaleX.zoom + this.lastT;
+        this.scaleX.setShift(-(mouseX - this.lastX) / this.scaleX.getZoom() + this.lastT);
     }
 
     protected Keyframe moving(GuiContext context, int mouseX, int mouseY)
