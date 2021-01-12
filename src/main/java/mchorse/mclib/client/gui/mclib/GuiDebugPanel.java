@@ -2,6 +2,8 @@ package mchorse.mclib.client.gui.mclib;
 
 import mchorse.mclib.client.gui.framework.elements.GuiModelRenderer;
 import mchorse.mclib.client.gui.framework.elements.buttons.GuiButtonElement;
+import mchorse.mclib.client.gui.framework.elements.buttons.GuiSlotElement;
+import mchorse.mclib.client.gui.framework.elements.input.GuiTransformations;
 import mchorse.mclib.client.gui.framework.elements.keyframes.GuiDopeSheet;
 import mchorse.mclib.client.gui.framework.elements.keyframes.GuiGraphView;
 import mchorse.mclib.client.gui.framework.elements.keyframes.GuiKeyframesEditor;
@@ -18,6 +20,8 @@ import mchorse.mclib.utils.wav.WaveReader;
 import mchorse.mclib.utils.wav.Waveform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 
 public class GuiDebugPanel extends GuiDashboardPanel
 {
@@ -25,6 +29,10 @@ public class GuiDebugPanel extends GuiDashboardPanel
 	public GuiKeyframesEditor<GuiGraphView> graph;
 	public GuiModelRenderer renderer;
 	public GuiButtonElement play;
+	public GuiSlotElement slot;
+
+	public GuiTransformations top;
+	public GuiTransformations bottom;
 
 	private WavePlayer player;
 	private Waveform wave;
@@ -51,6 +59,10 @@ public class GuiDebugPanel extends GuiDashboardPanel
 			}
 		};
 
+		this.slot = new GuiSlotElement(mc, 0, (t) -> {});
+		this.slot.flex().relative(this).y(10).x(1F, -10).anchorX(1F);
+		this.slot.stack = new ItemStack(Items.BAKED_POTATO, 42);
+
 		KeyframeChannel channel = new KeyframeChannel();
 
 		channel.insert(0, 10);
@@ -75,7 +87,6 @@ public class GuiDebugPanel extends GuiDashboardPanel
 
 		this.dopesheet.flex().relative(this).y(0).wh(1F, 0.5F);
 		this.graph.flex().relative(this).y(0.5F).wh(1F, 0.5F);
-		// this.add(this.dopesheet, this.graph);
 
 		this.renderer = new GuiModelRenderer(mc)
 		{
@@ -85,9 +96,22 @@ public class GuiDebugPanel extends GuiDashboardPanel
 		};
 		this.play = new GuiButtonElement(mc, IKey.str("Play me!"), this::play);
 
+		this.top = new GuiTransformations(mc);
+		this.top.fillR(90, 0, -90);
+		this.top.fillT(1, 5, -2);
+		this.bottom = new GuiTransformations(mc);
+		this.bottom.fillT(0, -2, 1.5);
+		this.bottom.fillS(2, 2, 2);
+		this.bottom.fillR(0, 180, 0);
+
+		this.top.flex().relative(this).x(0.5F).y(10).wh(190, 70).anchor(0.5F, 0);
+		this.bottom.flex().relative(this).x(0.5F).y(1F, -10).wh(190, 70).anchor(0.5F, 1F);
+
 		this.renderer.flex().relative(this).wh(1F, 1F);
 		this.play.flex().relative(this).xy(10, 10).w(80);
-		this.add(this.renderer, this.play);
+		// this.add(this.renderer, this.play);
+		// this.add(this.graph, this.dopesheet);
+		this.add(this.top, this.bottom);
 	}
 
 	private void play(GuiButtonElement button)

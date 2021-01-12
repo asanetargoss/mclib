@@ -65,6 +65,11 @@ public class GuiElement extends Gui implements IGuiElement
     public boolean ignored;
 
     /**
+     * Whether this element can be culled if it's out of viewport
+     */
+    public boolean culled = true;
+
+    /**
      * Whether this element is a container
      */
     protected boolean container;
@@ -325,6 +330,13 @@ public class GuiElement extends Gui implements IGuiElement
         return this;
     }
 
+    public GuiElement noCulling()
+    {
+        this.culled = false;
+
+        return this;
+    }
+
     /* Keybind manager */
 
     public KeybindManager keys()
@@ -453,10 +465,9 @@ public class GuiElement extends Gui implements IGuiElement
             return false;
         }
 
-        GuiElement last = this;
-        GuiElement element = this.getParent();
+        GuiElement element = this;
 
-        while (element != null)
+        while (true)
         {
             if (!element.isVisible())
             {
@@ -470,11 +481,15 @@ public class GuiElement extends Gui implements IGuiElement
                 return false;
             }
 
-            last = element;
+            if (parent == null)
+            {
+                break;
+            }
+
             element = parent;
         }
 
-        return last instanceof GuiBase.GuiRootElement;
+        return element instanceof GuiBase.GuiRootElement;
     }
 
     /* Overriding those methods so it would be much easier to 
@@ -595,6 +610,12 @@ public class GuiElement extends Gui implements IGuiElement
     }
 
     @Override
+    public boolean canBeDrawn(Area viewport)
+    {
+        return !this.culled || viewport.intersects(this.area);
+    }
+
+    @Override
     public void draw(GuiContext context)
     {
         if (this.keybinds != null && this.isEnabled())
@@ -608,7 +629,7 @@ public class GuiElement extends Gui implements IGuiElement
         }
         else if ((this.hideTooltip || this.container) && this.area.isInside(context))
         {
-            context.reset();
+            context.resetTooltip();
         }
 
         if (this.children != null)
