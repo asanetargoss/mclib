@@ -228,14 +228,14 @@ public class GuiDraw
 	public static void drawBillboard(int x, int y, int u, int v, int w, int h, int textureW, int textureH, int tu, int tv, float z)
 	{
 		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
+		VertexBuffer buffer = tessellator.getBuffer();
 
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
 		drawBillboard(buffer, x, y, u, v, w, h, textureW, textureH, tu, tv, z);
 		tessellator.draw();
 	}
 
-	public static void drawBillboard(BufferBuilder buffer, int x, int y, int u, int v, int w, int h, int textureW, int textureH, int tu, int tv, float z)
+	public static void drawBillboard(VertexBuffer buffer, int x, int y, int u, int v, int w, int h, int textureW, int textureH, int tu, int tv, float z)
 	{
 		float tw = 1F / textureW;
 		float th = 1F / textureH;
