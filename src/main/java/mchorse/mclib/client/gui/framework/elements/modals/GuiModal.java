@@ -1,9 +1,9 @@
 package mchorse.mclib.client.gui.framework.elements.modals;
 
-import mchorse.mclib.client.gui.framework.elements.IGuiElement;
-import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.framework.elements.GuiDelegateElement;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
+import mchorse.mclib.client.gui.framework.elements.IGuiElement;
+import mchorse.mclib.client.gui.framework.elements.utils.GuiContext;
 import mchorse.mclib.client.gui.utils.keys.IKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -20,6 +20,8 @@ public abstract class GuiModal extends GuiElement
 {
     public IKey label;
     public int y;
+
+    public GuiElement bar;
 
     public static boolean hasModal(GuiElement parent)
     {
@@ -68,6 +70,10 @@ public abstract class GuiModal extends GuiElement
     public GuiModal(Minecraft mc, IKey label)
     {
         super(mc);
+
+        this.bar = new GuiElement(mc);
+        this.bar.flex().relative(this).y(1F).w(1F).h(40).anchorY(1F).row(10).padding(10);
+        this.add(this.bar);
 
         this.label = label;
         this.markContainer();

@@ -132,10 +132,18 @@ public class GuiTexturePicker extends GuiElement
 
     public void close()
     {
+        boolean wasVisible = this.getParent() != null;
+
+        this.editor.close();
         this.removeFromParent();
 
-        if (this.callback != null)
+        if (this.callback != null && wasVisible)
         {
+            if (this.multiRL != null)
+            {
+                this.multiRL.recalculateId();
+            }
+
             this.callback.accept(this.multiRL != null ? this.multiRL : this.current);
         }
     }
@@ -288,11 +296,6 @@ public class GuiTexturePicker extends GuiElement
         if (this.multiRL != null)
         {
             this.setMultiSkin(this.multiRL.children.get(0).path, true);
-
-            if (this.editor.isVisible())
-            {
-                this.toggleEditor();
-            }
         }
         else if (this.current != null)
         {
@@ -311,6 +314,11 @@ public class GuiTexturePicker extends GuiElement
 
     protected void setMultiSkin(ResourceLocation skin, boolean notify)
     {
+        if (this.editor.isVisible())
+        {
+            this.toggleEditor();
+        }
+
         boolean show = skin instanceof MultiResourceLocation;
 
         if (show)
@@ -340,6 +348,7 @@ public class GuiTexturePicker extends GuiElement
         {
             if (show && this.callback != null)
             {
+                this.multiRL.recalculateId();
                 this.callback.accept(skin);
             }
             else
@@ -446,6 +455,8 @@ public class GuiTexturePicker extends GuiElement
             if (entry.title.startsWith(this.typed))
             {
                 this.picker.setCurrentScroll(entry);
+
+                return true;
             }
         }
 

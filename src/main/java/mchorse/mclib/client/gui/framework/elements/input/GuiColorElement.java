@@ -10,6 +10,8 @@ import mchorse.mclib.client.gui.utils.keys.IKey;
 import mchorse.mclib.config.values.ValueInt;
 import mchorse.mclib.utils.Direction;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 
 import java.util.function.Consumer;
 
@@ -59,7 +61,7 @@ public class GuiColorElement extends GuiElement
 				callback.accept(color);
 			}
 		});
-		this.picker.markIgnored().flex().wh(200, 85).bounds(GuiBase.getCurrent(), 2);
+		this.picker.markIgnored().flex().wh(200, 85).bounds(this, 2);
 
 		this.direction(Direction.BOTTOM).flex().h(20);
 	}
@@ -87,6 +89,7 @@ public class GuiColorElement extends GuiElement
 	public GuiColorElement target(GuiElement target)
 	{
 		this.target = target;
+		this.picker.flex().bounds(null, 0).target = target;
 
 		return this;
 	}
@@ -129,6 +132,8 @@ public class GuiColorElement extends GuiElement
 		if (McLib.enableBorders.get())
 		{
 			this.area.draw(0xff000000);
+
+			GlStateManager.color(1, 1, 1);
 			this.picker.drawRect(this.area.x + 1, this.area.y + 1, this.area.ex() - 1, this.area.ey() - 1);
 
 			padding = 1;

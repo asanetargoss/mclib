@@ -3,6 +3,7 @@ package mchorse.mclib.client.gui.utils.resizers.layout;
 import mchorse.mclib.client.gui.framework.elements.GuiElement;
 import mchorse.mclib.client.gui.utils.Area;
 import mchorse.mclib.client.gui.utils.ScrollArea;
+import mchorse.mclib.client.gui.utils.ScrollDirection;
 import mchorse.mclib.client.gui.utils.resizers.AutomaticResizer;
 import mchorse.mclib.client.gui.utils.resizers.ChildResizer;
 import mchorse.mclib.client.gui.utils.resizers.IResizer;
@@ -33,6 +34,11 @@ public class ColumnResizer extends AutomaticResizer
 	 * Scroll mode, this will automatically calculate the scroll area
 	 */
 	private boolean scroll;
+
+	/**
+	 * Place elements after it reached the bottom on the left, instead of the right
+	 */
+	private boolean flip;
 
 	public static ColumnResizer apply(GuiElement element, int margin)
 	{
@@ -76,6 +82,13 @@ public class ColumnResizer extends AutomaticResizer
 		return this;
 	}
 
+	public ColumnResizer flip()
+	{
+		this.flip = true;
+
+		return this;
+	}
+
 	@Override
 	public void apply(Area area)
 	{
@@ -107,7 +120,7 @@ public class ColumnResizer extends AutomaticResizer
 
 		if (!this.vertical && this.y + h > this.parent.area.h - this.padding * 2)
 		{
-			this.x += this.w + this.padding;
+			this.x += (this.w + this.padding) * (this.flip ? -1 : 1);
 			this.y = this.w = 0;
 		}
 
@@ -127,11 +140,11 @@ public class ColumnResizer extends AutomaticResizer
 		{
 			ScrollArea scroll = (ScrollArea) this.parent.area;
 
-			if (this.vertical && scroll.direction == ScrollArea.ScrollDirection.VERTICAL)
+			if (this.vertical && scroll.direction == ScrollDirection.VERTICAL)
 			{
 				scroll.scrollSize = this.y - this.margin + this.padding * 2;
 			}
-			else if (!this.vertical && scroll.direction == ScrollArea.ScrollDirection.HORIZONTAL)
+			else if (!this.vertical && scroll.direction == ScrollDirection.HORIZONTAL)
 			{
 				scroll.scrollSize = this.x + this.w + this.padding * 2;
 			}
