@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 public class PacketDropItem implements IMessage
 {
-	public ItemStack stack = ItemStack.EMPTY;
+	public ItemStack stack = null;
 
 	public PacketDropItem()
 	{}
@@ -25,14 +25,14 @@ public class PacketDropItem implements IMessage
 
 		if (tagCompound != null)
 		{
-			this.stack = new ItemStack(tagCompound);
+			this.stack = ItemStack.loadItemStackFromNBT(tagCompound);
 		}
 	}
 
 	@Override
 	public void toBytes(ByteBuf buf)
 	{
-		if (!this.stack.isEmpty())
+		if (this.stack != null)
 		{
 			ByteBufUtils.writeTag(buf, this.stack.writeToNBT(new NBTTagCompound()));
 		}
