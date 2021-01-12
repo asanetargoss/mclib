@@ -139,7 +139,7 @@ public class FilteredResourceLocation implements IWritableLocation
 
 		if (tag.hasKey("Scale"))
 		{
-			this.scale = tag.getInteger("Scale");
+			this.scale = tag.getFloat("Scale");
 		}
 
 		if (tag.hasKey("ScaleToLargest"))
@@ -221,11 +221,6 @@ public class FilteredResourceLocation implements IWritableLocation
 	@Override
 	public NBTBase writeNbt()
 	{
-		if (this.isDefault())
-		{
-			return new NBTTagString(this.toString());
-		}
-
 		NBTTagCompound tag = new NBTTagCompound();
 
 		tag.setString("Path", this.toString());
@@ -244,11 +239,6 @@ public class FilteredResourceLocation implements IWritableLocation
 	@Override
 	public JsonElement writeJson()
 	{
-		if (this.isDefault())
-		{
-			return new JsonPrimitive(this.toString());
-		}
-
 		JsonObject object = new JsonObject();
 
 		object.addProperty("path", this.toString());

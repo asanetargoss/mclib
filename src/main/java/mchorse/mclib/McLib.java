@@ -7,9 +7,11 @@ import mchorse.mclib.config.values.ValueBoolean;
 import mchorse.mclib.config.values.ValueInt;
 import mchorse.mclib.config.values.ValueRL;
 import mchorse.mclib.events.RegisterConfigEvent;
+import mchorse.mclib.events.RenderOverlayEvent;
 import mchorse.mclib.math.IValue;
 import mchorse.mclib.math.MathBuilder;
-import mchorse.mclib.math.Variable;
+import mchorse.mclib.math.Operation;
+import mchorse.mclib.math.Operator;
 import mchorse.mclib.utils.PayloadASM;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -49,10 +51,12 @@ public class McLib
     public static ValueInt primaryColor;
     public static ValueBoolean enableBorders;
     public static ValueBoolean enableCheckboxRendering;
+    public static ValueBoolean enableTrackpadIncrements;
     public static ValueBoolean enableGridRendering;
     public static ValueInt userIntefaceScale;
 
-    public static ValueBoolean enableMouseRendering;
+    public static ValueBoolean enableCursorRendering;
+    public static ValueBoolean enableMouseButtonRendering;
     public static ValueBoolean enableKeystrokeRendering;
     public static ValueInt keystrokeOffset;
     public static ValueInt keystrokeMode;
@@ -78,6 +82,7 @@ public class McLib
         debugPanel.invisible();
         enableBorders = builder.getBoolean("enable_borders", true);
         enableCheckboxRendering = builder.getBoolean("enable_checkbox_rendering", false);
+        enableTrackpadIncrements = builder.getBoolean("enable_trackpad_increments", true);
         enableGridRendering = builder.getBoolean("enable_grid_rendering", true);
         userIntefaceScale = builder.getInt("user_interface_scale", 0, 0, 4);
 
@@ -85,7 +90,8 @@ public class McLib
         favoriteColors.invisible();
         builder.register(favoriteColors);
 
-        enableMouseRendering = builder.category("tutorials").getBoolean("enable_mouse_rendering", false);
+        enableCursorRendering = builder.category("tutorials").getBoolean("enable_mouse_rendering", false);
+        enableMouseButtonRendering = builder.getBoolean("enable_mouse_buttons_rendering", false);
         enableKeystrokeRendering = builder.getBoolean("enable_keystrokes_rendering", false);
         keystrokeOffset = builder.getInt("keystroke_offset", 10, 0, 20);
         keystrokeMode = builder.getInt("keystroke_position", 1).modes(
@@ -132,9 +138,26 @@ public class McLib
 
     public static void main(String[] args) throws Exception
     {
-        MathBuilder test = new MathBuilder();
-        IValue value = test.parse("2 + 2");
+        Operator.DEBUG = true;
+        MathBuilder builder = new MathBuilder();
 
-        System.out.println(value.get());
+        test(builder, "1 - 2 * 3 + 4 ", 1 - 2 * 3 + 4  );
+        test(builder, "2 * 3 - 8 + 7 ", 2 * 3 - 8 + 7  );
+        test(builder, "3 - 7 + 2 * 4 ", 3 - 7 + 2 * 4  );
+        test(builder, "8 / 4 - 3 * 10", 8 / 4 - 3 * 10 );
+        test(builder, "2 - 4 * 5 / 8 ", 2 - 4 * 5 / 8D );
+        test(builder, "3 / 4 * 8 - 10", 3 / 4D * 8 - 10);
+        test(builder, "2 * 3 / 4 * 5 ", 2D * 3 / 4 * 5 );
+        test(builder, "2 + 3 - 4 + 5 ", 2 + 3 - 4 + 5  );
+        test(builder, "7 - 2 ^ 4 - 4 * 5 + 15 ^ 2", 7 - Math.pow(2, 4) - 4 * 5 + Math.pow(15, 2));
+        test(builder, "5 -(10 + 20)", 5 -(10 + 20));
+    }
+
+    public static void test(MathBuilder builder, String expression, double result) throws Exception
+    {
+        IValue value = builder.parse(expression);
+
+        System.out.println(expression + " = " + value.get() + " (" + result + ") is " + Operation.equals(value.get(), result));
+        System.out.println(value.toString() + "\n");
     }
 }
